@@ -21,6 +21,8 @@ import word2vec
 
 import morpho_dataset
 from configs import *
+import shutil
+
 
 class Network:
     def __init__(self, threads, seed=42):
@@ -641,3 +643,4 @@ if __name__ == "__main__":
         print("testf1 {}".format(test_score))
         stat_in_file(args.logpath,
                             ["result", "testf1", test_score])
+        shutil.rmtree(args.logdir)

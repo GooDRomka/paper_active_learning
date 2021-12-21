@@ -29,6 +29,9 @@ def start_simple_learning(train, dev, test, model_config):
 
     get_conll_file("train", [selected_texts[i] for i in X_train] , [embedings[i] for i in X_train], [selected_labels[i] for i in X_train])
     get_conll_file("dev", [selected_texts[i] for i in X_dev] , [embedings[i] for i in X_dev], [selected_labels[i] for i in X_dev])
+
+    # get_conll_file("train", train['texts'], train['embed'], train['labels'])
+    # get_conll_file("dev", dev['texts'], dev['embed'], dev['labels'])
     get_conll_file("test", test['texts'], test['embed'], test['labels'])
 
     os.system("./tagger.py --logpath={}".format(model_config.loginfo))

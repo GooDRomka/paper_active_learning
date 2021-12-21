@@ -11,6 +11,8 @@ import shutil
 import torch
 import random
 from configs import *
+import tensorflow as tf
+from tensorflow.python.framework import ops
 
 def load_data(file,vectors=None):
     """只读取第1列和最后1列"""
@@ -139,6 +141,8 @@ def set_seed(seed):
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
+    ops.reset_default_graph()
+    tf.random.set_random_seed(seed)
 
 def find_new_number(directory):
     result = 0
