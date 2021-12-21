@@ -9,7 +9,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 """Nested NER training and evaluation in TensorFlow."""
-
+from active_utils import *
 import json
 import os
 import sys
@@ -20,7 +20,7 @@ import  tensorflow as tf
 import word2vec
 
 import morpho_dataset
-
+from configs import *
 
 class Network:
     def __init__(self, threads, seed=42):
@@ -484,19 +484,20 @@ if __name__ == "__main__":
     # Parse arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("--batch_size", default=8, type=int, help="Batch size.")
-    parser.add_argument("--bert_embeddings_dev", default=None, type=str, help="Pretrained BERT embeddings for dev data.")
-    parser.add_argument("--bert_embeddings_test", default=None, type=str, help="Pretrained BERT embeddings for test data.")
-    parser.add_argument("--bert_embeddings_train", default=None, type=str, help="Pretrained BERT embeddings for train data.")
+    parser.add_argument("--bert_embeddings_dev", default="./data/teprorary/dev_vectors.txt", type=str, help="Pretrained BERT embeddings for dev data.")
+    parser.add_argument("--bert_embeddings_test", default="./data/teprorary/test_vectors.txt", type=str, help="Pretrained BERT embeddings for test data.")
+    parser.add_argument("--bert_embeddings_train", default="./data/teprorary/train_vectors.txt", type=str, help="Pretrained BERT embeddings for train data.")
     parser.add_argument("--beta_2", default=0.98, type=float, help="Beta 2.")
     parser.add_argument("--corpus", default="CoNLL_en", type=str, help="CoNLL_en|CoNLL_de|CoNLL_nl|CoNLL_es|ACE2004|ACE2005|GENIA.")
     parser.add_argument("--cle_dim", default=128, type=int, help="Character-level embedding dimension.")
     parser.add_argument("--decoding", default="CRF", type=str, help="Decoding: [CRF|ME|LSTM|seq2seq].")
-    parser.add_argument("--dev_data", default=None, type=str, help="Dev data.")
+    parser.add_argument("--dev_data", default="./data/teprorary/dev.txt", type=str, help="Dev data.")
+    parser.add_argument("--logpath", default="./logs/simple/01_loginfo.csv", type=str, help="log")
     parser.add_argument("--dropout", default=0.5, type=float, help="Dropout rate.")
     parser.add_argument("--elmo_dev", default=None, type=str, help="ELMo dev embeddings.")
     parser.add_argument("--elmo_test", default=None, type=str, help="ELMo test embeddings.")
     parser.add_argument("--elmo_train", default=None, type=str, help="ELMo train embeddings.")
-    parser.add_argument("--epochs", default="10:1e-3", type=str, help="Epochs and learning rates.")
+    parser.add_argument("--epochs", default="1:1e-3", type=str, help="Epochs and learning rates.")
     parser.add_argument("--fasttext_model", default=None, type=str, help="Fasttext subwords.")
     parser.add_argument("--flair_dev", default=None, type=str, help="Flair dev embeddings.")
     parser.add_argument("--flair_test", default=None, type=str, help="Flair test embeddings.")
@@ -510,8 +511,8 @@ if __name__ == "__main__":
     parser.add_argument("--rnn_cell", default="LSTM", type=str, help="RNN cell type.")
     parser.add_argument("--rnn_cell_dim", default=256, type=int, help="RNN cell dimension.")
     parser.add_argument("--rnn_layers", default=1, type=int, help="Number of hidden layers.")
-    parser.add_argument("--test_data", default=None, type=str, help="Test data.")
-    parser.add_argument("--train_data", default=None, type=str, help="Training data.")
+    parser.add_argument("--test_data", default="./data/teprorary/train.txt", type=str, help="Test data.")
+    parser.add_argument("--train_data", default="./data/teprorary/train.txt", type=str, help="Training data.")
     parser.add_argument("--threads", default=4, type=int, help="Maximum number of threads to use.")
     parser.add_argument("--we_dim", default=256, type=int, help="Word embedding dimension.")
     parser.add_argument("--word_dropout", default=0.2, type=float, help="Word dropout.")
@@ -606,23 +607,37 @@ if __name__ == "__main__":
                       pretrained_flair_dim=train.flair_embeddings_dim(),
                       pretrained_elmo_dim=train.elmo_embeddings_dim(),
                       predict_only=args.predict)
-
+    model_config = ModelConfig()
     if args.predict:
         network.saver.restore(network.session, "{}/model".format(args.predict.rstrip("/")))
         print("Predicting test data", file=sys.stderr)
         network.predict("test", test, args, sys.stdout, evaluating=False)
     else:
         # Train
+        keep_max, best_epoch,epoch = 0, 0, 0
+        f1s = [-1]
         for epochs, learning_rate in args.epochs:
-            for epoch in range(epochs):
-                print("epoch {}".format(epoch))
+            while keep_max < model_config.stop_criteria_steps:
+                epoch+=1
                 network.train_epoch(train, learning_rate, args)
                 dev_score = 0
                 if args.dev_data:
                     dev_score = network.evaluate("dev", dev, args)
                     print("epoch {} devf1 {}".format(epoch, dev_score))
+                keep_max += 1
+                if max(f1s) < dev_score:
+                    keep_max = 0
+                    best_epoch = epoch
+                    network.saver.save(network.session, "{}/model".format(args.logdir), write_meta_graph=False)
+                f1s.append(dev_score)
+                stat_in_file(args.logpath, ["   EndEpoch", epoch,  "f1", dev_score,
+                                             "memory", model_config.p.memory_info().rss/1024/1024])
+
+
         # Save network
-        network.saver.save(network.session, "{}/model".format(args.logdir), write_meta_graph=False)
-        # Test
-        test_score = network.evaluate("test", test, args)
+        network.saver.restore(network.session, "{}/model".format(args.logdir))
+
+        test_score = network.evaluate("dev", dev, args)
         print("testf1 {}".format(test_score))
+        stat_in_file(args.logpath,
+                            ["result", "testf1", test_score])
