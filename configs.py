@@ -10,7 +10,7 @@ class ModelConfig(object):
         self.learning_rate = 0.003
         self.init_budget = 5000
         self.step_budget = 1500
-        self.stop_criteria_steps = 4
+        self.stop_criteria_steps = 14
         self.budget = 15000
         self.select_strategy = STRATEGY.PRECISION
         self.label_strategy = ""

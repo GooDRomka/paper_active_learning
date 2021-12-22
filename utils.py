@@ -8,7 +8,6 @@ logger = logging.getLogger(__name__)
 import os
 import glob
 import shutil
-import torch
 import random
 from configs import *
 import tensorflow as tf
@@ -99,11 +98,6 @@ def load_embedding(embedding_file):
     return embeddings_index
 
 
-def compute_price(data):
-    price = 0
-    for sent in data:
-        price+=len(sent)
-    return price
 
 def choose_ids_by_price(idxs, budget, texts):
     selected_ids = []
@@ -138,9 +132,6 @@ def set_seed(seed):
     random.seed(seed)
     np.random.seed(seed)
     os.environ['PYTHONHASHSEED'] = str(seed)
-    torch.manual_seed(seed)
-    torch.cuda.manual_seed(seed)
-    torch.cuda.manual_seed_all(seed)
     ops.reset_default_graph()
     tf.random.set_random_seed(seed)
 
