@@ -35,7 +35,7 @@ def start_simple_learning(train, dev, test, model_config):
         get_conll_file("dev", model_config, dev['texts'], dev['embed'], dev['labels'])
 
     get_conll_file("test", model_config, test['texts'], test['embed'], test['labels'])
-    os.system("./tagger.py --logpath={} --train_data='{}train.txt' --test_data='{}test.txt' --dev_data='{}test.txt' --bert_embeddings_train=\"{}train_vectors.txt\" --bert_embeddings_test=\"{}test_vectors.txt\" --bert_embeddings_dev=\"{}test_vectors.txt\"".format(model_config.loginfo,path_data,path_data,path_data,path_data,path_data,path_data))
+    os.system("./tagger.py --logpath={} --train_data='{}train.txt' --test_data='{}test.txt' --dev_data='{}dev.txt' --bert_embeddings_train=\"{}train_vectors.txt\" --bert_embeddings_test=\"{}test_vectors.txt\" --bert_embeddings_dev=\"{}dev_vectors.txt\"".format(model_config.loginfo,path_data,path_data,path_data,path_data,path_data,path_data))
 
 
     # stat_in_file(model_config.loginfo,
