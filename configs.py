@@ -22,7 +22,7 @@ class ModelConfig(object):
         self.p = psutil.Process(os.getpid())
         self.batch_size = 8
         self.dropout = 0.5
-
+        self.number = 0
 
 
 

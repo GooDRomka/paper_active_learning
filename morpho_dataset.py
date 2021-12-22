@@ -363,7 +363,7 @@ class MorphoDataset:
             we_size = self.bert_embeddings_dim()
             batch_bert_embeddings = np.zeros([batch_size, max_sentence_len, we_size], np.float32)
             for i in range(batch_size):
-                # print("i",i, len(batch_perm),batch_perm[i],len(self._bert_embeddings))
+                # print("i",i, len(batch_perm),batch_perm[i],len(self._bert_embeddings),len(batch_bert_embeddings[i, :self._bert_embeddings[batch_perm[i]].shape[0]],len(self._bert_embeddings[batch_perm[i]]))
                 if batch_perm[i] != len(self._bert_embeddings):
                     batch_bert_embeddings[i, :self._bert_embeddings[batch_perm[i]].shape[0]] = self._bert_embeddings[batch_perm[i]]
             batch_dict["batch_bert_wes"] = batch_bert_embeddings

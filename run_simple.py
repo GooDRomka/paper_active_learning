@@ -21,6 +21,7 @@ params = [1000,1500,2000,3000,4000,6000,8000,10000,12000, 15000,20000,25000,3000
 number = find_new_number("logs/simple")
 model_config.loginfo = "logs/simple/" + number + "_loginfo.csv"
 seed = 0
+model_config.number = number
 
 model_config.save_model_path = "saved_models/simple_model" + number + ".pth"
 

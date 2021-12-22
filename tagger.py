@@ -513,7 +513,7 @@ if __name__ == "__main__":
     parser.add_argument("--rnn_cell", default="LSTM", type=str, help="RNN cell type.")
     parser.add_argument("--rnn_cell_dim", default=256, type=int, help="RNN cell dimension.")
     parser.add_argument("--rnn_layers", default=1, type=int, help="Number of hidden layers.")
-    parser.add_argument("--test_data", default="./data/teprorary/train.txt", type=str, help="Test data.")
+    parser.add_argument("--test_data", default="./data/teprorary/test.txt", type=str, help="Test data.")
     parser.add_argument("--train_data", default="./data/teprorary/train.txt", type=str, help="Training data.")
     parser.add_argument("--threads", default=4, type=int, help="Maximum number of threads to use.")
     parser.add_argument("--we_dim", default=256, type=int, help="Word embedding dimension.")
@@ -639,7 +639,7 @@ if __name__ == "__main__":
         # Save network
         network.saver.restore(network.session, "{}/model".format(args.logdir))
 
-        test_score = network.evaluate("dev", dev, args)
+        test_score = network.evaluate("test", test, args)
         print("testf1 {}".format(test_score))
         stat_in_file(args.logpath,
                             ["result", "testf1", test_score])

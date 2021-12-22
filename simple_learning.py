@@ -24,17 +24,19 @@ def start_simple_learning(train, dev, test, model_config):
 
 
     embedings, labels = get_embeding(selected_ids, selected_labels, train['embed'])
-
+    path_data = "data/teprorary"+ model_config.number+"/"
     X_train, X_dev, y_train, y_dev = train_test_split(list(range(len(labels))), list(range(len(labels))), test_size=0.2, random_state=42)
 
-    get_conll_file("train", [selected_texts[i] for i in X_train] , [embedings[i] for i in X_train], [selected_labels[i] for i in X_train])
-    get_conll_file("dev", [selected_texts[i] for i in X_dev] , [embedings[i] for i in X_dev], [selected_labels[i] for i in X_dev])
+    get_conll_file("train", model_config, [selected_texts[i] for i in X_train] , [embedings[i] for i in X_train], [selected_labels[i] for i in X_train])
+    get_conll_file("dev", model_config, [selected_texts[i] for i in X_dev] , [embedings[i] for i in X_dev], [selected_labels[i] for i in X_dev])
 
-    # get_conll_file("train", train['texts'], train['embed'], train['labels'])
-    # get_conll_file("dev", dev['texts'], dev['embed'], dev['labels'])
-    get_conll_file("test", test['texts'], test['embed'], test['labels'])
+    if model_config.init_budget==400000:
+        get_conll_file("train", model_config, train['texts'], train['embed'], train['labels'])
+        get_conll_file("dev", model_config, dev['texts'], dev['embed'], dev['labels'])
 
-    os.system("./tagger.py --logpath={}".format(model_config.loginfo))
+    get_conll_file("test", model_config, test['texts'], test['embed'], test['labels'])
+    os.system("./tagger.py --logpath={} --train_data='{}train.txt' --test_data='{}test.txt' --dev_data='{}test.txt' --bert_embeddings_train=\"{}train_vectors.txt\" --bert_embeddings_test=\"{}test_vectors.txt\" --bert_embeddings_dev=\"{}test_vectors.txt\"".format(model_config.loginfo,path_data,path_data,path_data,path_data,path_data,path_data))
+
 
     # stat_in_file(model_config.loginfo,
     #              ["result", "len(selected_texts):", len(selected_texts), "Init_budget:", model_config.init_budget,

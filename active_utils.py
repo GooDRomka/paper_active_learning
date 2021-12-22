@@ -226,7 +226,6 @@ class ActiveStrategy(object):
 
 def predict_precision_span(model, model_config, texts, labels):
     tags, scores = get_tags(model, texts, labels, model_config)
-    labels = [id_to_labels(sent, model_config.tag_to_ix) for sent in labels]
     scores = []
     for label, text, tag in zip(labels, texts, tags):
         pr = 0
@@ -243,15 +242,18 @@ def key_by_value(d,value):
             return key
 
 
-def get_conll_file(file, sentences, embedings,  labels):
-    embed_path = "data/teprorary/"+file+"_vectors.txt"
-    conll_path = "data/teprorary/"+file+".txt"
+def get_conll_file(file,model_config, sentences, embedings,  labels):
+    embed_path = "data/teprorary"+model_config.number+"/"+file+"_vectors.txt"
+    conll_path = "data/teprorary"+model_config.number+"/"+file+".txt"
+    if not os.path.exists("data/teprorary"+model_config.number+"/"):
+        os.makedirs("data/teprorary"+model_config.number+"/")
 
-    try:
+    if os.path.exists(conll_path):
         os.remove(conll_path)
+
+    if os.path.exists(embed_path):
         os.remove(embed_path)
-    except:
-        pass
+
     if not os.path.exists(embed_path):
         with open(embed_path, 'w'):
             pass
@@ -262,11 +264,7 @@ def get_conll_file(file, sentences, embedings,  labels):
 
     file_object = open(conll_path, 'a')
 
-    for sent,lable,embed in zip(sentences,labels,embedings):
-        j = 0
-        if len(lable)!= len(embed):
-            print("ERRRORORR", len(lable), len(embed))
-            exit()
+    for sent,lable,embed in zip(sentences, labels, embedings):
         for s,l in zip(sent,lable):
             file_object.write("{}\t_\t_\t{}\n".format(s, l))
         file_object.write("\n")
