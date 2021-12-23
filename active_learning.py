@@ -72,6 +72,8 @@ def start_active_learning(train, dev, test, model_config):
 
 
     get_conll_file("test", model_config, test['texts'], test['embed'], test['labels'])
+    train = morpho_dataset.MorphoDataset(args.train_data, max_sentences=args.max_sentences,
+                                         bert_embeddings_filename=args.bert_embeddings_train)
 
     test = morpho_dataset.MorphoDataset(args.test_data, train=train, shuffle_batches=False,
                                         bert_embeddings_filename=args.bert_embeddings_test)
