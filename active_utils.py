@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 import numpy as np
-from PIL import Image
+
 
 class DataPool(object):
     def __init__(self, texts, labels, init_num):
@@ -242,11 +242,12 @@ def key_by_value(d,value):
             return key
 
 
-def get_conll_file(file,model_config, sentences, embedings,  labels):
-    embed_path = "data/teprorary"+model_config.number+"/"+file+"_vectors.txt"
-    conll_path = "data/teprorary"+model_config.number+"/"+file+".txt"
-    if not os.path.exists("data/teprorary"+model_config.number+"/"):
-        os.makedirs("data/teprorary"+model_config.number+"/")
+def get_conll_file(file, model_config, sentences, embedings, labels):
+
+    embed_path = "data/teprorary"+str(model_config.number)+"/"+file+"_vectors.txt"
+    conll_path = "data/teprorary"+str(model_config.number)+"/"+file+".txt"
+    if not os.path.exists("data/teprorary"+str(model_config.number)+"/"):
+        os.makedirs("data/teprorary"+str(model_config.number)+"/")
 
     if os.path.exists(conll_path):
         os.remove(conll_path)
@@ -269,8 +270,11 @@ def get_conll_file(file,model_config, sentences, embedings,  labels):
             file_object.write("{}\t_\t_\t{}\n".format(s, l))
         file_object.write("\n")
     file_object.close()
+    print(embedings)
+    # print(len(embedings),len(embedings[0]),len(embedings[0][0]))
+
     with open(embed_path, 'wb') as fp:
-        pickle.dump(embedings, fp)
+        pickle.dump(list(embedings), fp)
 
 
 
@@ -287,18 +291,7 @@ def active_learing_sampling(model, dataPool, model_config, train, sum_prices):
         tags, scores = get_tags(model, small_unselected_embedings,small_unselected_labels, model_config)
         tobe_selected_idxs, tobe_selected_scores = ActiveStrategy.lc_sampling(scores, small_unselected_embedings,
                                                                               model_config.step_budget)
-    elif model_config.select_strategy == STRATEGY.MNLP:
-        scores = model.predict_mnlp_score(small_unselected_embedings)
-        tobe_selected_idxs, tobe_selected_scores, price = ActiveStrategy.mnlp_sampling(scores, small_unselected_embedings,
-                                                                                       model_config.step_budget)
-    elif model_config.select_strategy == STRATEGY.TTE:
-        probs = model.predict_probs(small_unselected_embedings)
-        tobe_selected_idxs, tobe_selected_scores = ActiveStrategy.tte_sampling(probs, small_unselected_embedings,
-                                                                               model_config.step_budget)
-    elif model_config.select_strategy == STRATEGY.TE:
-        probs = model.predict_probs(small_unselected_embedings)
-        tobe_selected_idxs, tobe_selected_scores = ActiveStrategy.te_sampling(probs, small_unselected_embedings,
-                                                                              model_config.step_budget)
+
     elif model_config.select_strategy == STRATEGY.RAND:
         tobe_selected_idxs = ActiveStrategy.random_sampling(small_unselected_embedings,
                                                             model_config.step_budget)

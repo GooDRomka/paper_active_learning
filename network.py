@@ -31,6 +31,44 @@ import morpho_dataset
 from configs import *
 import shutil
 
+class Arguments(object):
+    def __init__(self, data_path = "./data/teprorary/"):
+
+        self.batch_size=8
+        self.bert_embeddings_dev=data_path + "dev_vectors.txt"
+        self.bert_embeddings_test=data_path + "test_vectors.txt"
+        self.bert_embeddings_train=data_path + "train_vectors.txt"
+        self.dev_data = data_path + "dev.txt"
+        self.beta_2=0.98
+        self.corpus="CoNLL_en"
+        self.cle_dim=128
+        self.decoding="CRF"
+
+        self.logpath="./logs/simple/00_loginfo.csv"
+        self.dropout=0.5
+        self.elmo_dev=None
+        self.elmo_test=None
+        self.elmo_train=None
+        self.epochs="1:1e-3"
+        self.fasttext_model=None
+        self.flair_dev=None
+        self.flair_test=None
+        self.flair_train=None
+        self.form_wes_model=None
+        self.label_smoothing=0
+        self.lemma_wes_model=None
+        self.max_sentences=None
+        self.name=None
+        self.predict=None
+        self.rnn_cell="LSTM"
+        self.rnn_cell_dim=256
+        self.rnn_layers=1
+        self.test_data=data_path + "test.txt"
+        self.train_data=data_path + "train.txt"
+        self.threads=4
+        self.we_dim=256
+        self.word_dropout=0.2
+
 
 class Network:
     def __init__(self, threads, seed=42):
@@ -71,12 +109,8 @@ class Network:
                 self.lemma_charseq_ids = tf.placeholder(tf.int32, [None,None], name="lemma_charseq_ids")
 
             # RNN Cell
-            if args.rnn_cell == "LSTM":
-                rnn_cell = tf.nn.rnn_cell.BasicLSTMCell
-            elif args.rnn_cell == "GRU":
-                rnn_cell = tf.nn.rnn_cell.GRUCell
-            else:
-                raise ValueError("Unknown rnn_cell {}".format(args.rnn_cell))
+
+            rnn_cell = tf.nn.rnn_cell.BasicLSTMCell
 
             inputs = []
 
@@ -403,7 +437,7 @@ class Network:
                         f1 = float(line.split()[-1])
                         self.session.run(self.metrics_summarize["F1"][dataset_name], {self.metrics["F1"]: f1})
 
-            return f1
+            return f1, f1, f1
         elif args.corpus in [ "ACE2004", "ACE2005", "GENIA" ]: # nested named entities evaluation
             os.system("cd {} && ../../run_eval_nested.sh {} {}".format(args.logdir, dataset_name, os.path.dirname(args.__dict__[dataset_name + "_data"])))
 
@@ -418,7 +452,7 @@ class Network:
                         f1 = float(line.split(" ")[1])
                         for metric, value in [["precision", precision], ["recall", recall], ["F1", f1]]:
                             self.session.run(self.metrics_summarize[metric][dataset_name], {self.metrics[metric]: value})
-            return f1
+            return precision, recall, f1
         else:
             raise ValueError("Unknown corpus {}".format(args.corpus))
 
@@ -431,6 +465,9 @@ class Network:
             seq2seq = args.decoding == "seq2seq"
             batch_dict = dataset.next_batch(args.batch_size, args.form_wes_model, args.lemma_wes_model, args.fasttext_model, args.including_charseqs, seq2seq=seq2seq)
             targets = [self.predictions]
+            train = morpho_dataset.MorphoDataset(args.train_data, max_sentences=args.max_sentences,
+                                                 bert_embeddings_filename=args.bert_embeddings_train)
+
             feeds = {self.sentence_lens: batch_dict["sentence_lens"],
                     self.form_ids: batch_dict["word_ids"][dataset.FORMS],
                     self.lemma_ids: batch_dict["word_ids"][train.LEMMAS],
@@ -482,105 +519,63 @@ class Network:
             print("", file=prediction_file)
 
 
-if __name__ == "__main__":
+def train_model(model_config):
     import argparse
     import datetime
     import os
     import re
 
-    # Fix random seed
-    np.random.seed(42)
+    path_data = "data/teprorary" + model_config.number + "/"
+    args = Arguments()
 
-    # Parse arguments
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--batch_size", default=8, type=int, help="Batch size.")
-    parser.add_argument("--bert_embeddings_dev", default="./data/teprorary/dev_vectors.txt", type=str, help="Pretrained BERT embeddings for dev data.")
-    parser.add_argument("--bert_embeddings_test", default="./data/teprorary/test_vectors.txt", type=str, help="Pretrained BERT embeddings for test data.")
-    parser.add_argument("--bert_embeddings_train", default="./data/teprorary/train_vectors.txt", type=str, help="Pretrained BERT embeddings for train data.")
-    parser.add_argument("--beta_2", default=0.98, type=float, help="Beta 2.")
-    parser.add_argument("--corpus", default="CoNLL_en", type=str, help="CoNLL_en|CoNLL_de|CoNLL_nl|CoNLL_es|ACE2004|ACE2005|GENIA.")
-    parser.add_argument("--cle_dim", default=128, type=int, help="Character-level embedding dimension.")
-    parser.add_argument("--decoding", default="CRF", type=str, help="Decoding: [CRF|ME|LSTM|seq2seq].")
-    parser.add_argument("--dev_data", default="./data/teprorary/dev.txt", type=str, help="Dev data.")
-    parser.add_argument("--logpath", default="./logs/simple/01_loginfo.csv", type=str, help="log")
-    parser.add_argument("--dropout", default=0.5, type=float, help="Dropout rate.")
-    parser.add_argument("--elmo_dev", default=None, type=str, help="ELMo dev embeddings.")
-    parser.add_argument("--elmo_test", default=None, type=str, help="ELMo test embeddings.")
-    parser.add_argument("--elmo_train", default=None, type=str, help="ELMo train embeddings.")
-    parser.add_argument("--epochs", default="1:1e-3", type=str, help="Epochs and learning rates.")
-    parser.add_argument("--fasttext_model", default=None, type=str, help="Fasttext subwords.")
-    parser.add_argument("--flair_dev", default=None, type=str, help="Flair dev embeddings.")
-    parser.add_argument("--flair_test", default=None, type=str, help="Flair test embeddings.")
-    parser.add_argument("--flair_train", default=None, type=str, help="Flair train embeddings.")
-    parser.add_argument("--form_wes_model", default=None, type=str, help="Pretrained form WEs.")
-    parser.add_argument("--label_smoothing", default=0, type=float, help="Label smoothing.")
-    parser.add_argument("--lemma_wes_model", default=None, type=str, help="Pretrained lemma WEs.")
-    parser.add_argument("--max_sentences", default=None, type=int, help="Number of training sentences (for debugging).")
-    parser.add_argument("--name", default=None, type=str, help="Experiment name.")
-    parser.add_argument("--predict", default=None, type=str, help="Predict using the passed model.")
-    parser.add_argument("--rnn_cell", default="LSTM", type=str, help="RNN cell type.")
-    parser.add_argument("--rnn_cell_dim", default=256, type=int, help="RNN cell dimension.")
-    parser.add_argument("--rnn_layers", default=1, type=int, help="Number of hidden layers.")
-    parser.add_argument("--test_data", default="./data/teprorary/test.txt", type=str, help="Test data.")
-    parser.add_argument("--train_data", default="./data/teprorary/train.txt", type=str, help="Training data.")
-    parser.add_argument("--threads", default=4, type=int, help="Maximum number of threads to use.")
-    parser.add_argument("--we_dim", default=256, type=int, help="Word embedding dimension.")
-    parser.add_argument("--word_dropout", default=0.2, type=float, help="Word dropout.")
-    args = parser.parse_args()
 
-    if args.predict:
-        # Load saved options from the model
-        with open("{}/options.json".format(args.predict), mode="r") as options_file:
-            args = argparse.Namespace(**json.load(options_file))
-        parser.parse_args(namespace=args)
-    else:
-        # Create logdir name
-        logargs = dict(vars(args).items())
-        logargs["form_wes_model"] = 1 if args.form_wes_model else 0
-        logargs["lemma_wes_model"] = 1 if args.lemma_wes_model else 0
-        del logargs["bert_embeddings_dev"]
-        del logargs["bert_embeddings_test"]
-        del logargs["bert_embeddings_train"]
-        del logargs["beta_2"]
-        del logargs["cle_dim"]
-        del logargs["dev_data"]
-        del logargs["dropout"]
-        del logargs["elmo_dev"]
-        del logargs["elmo_test"]
-        del logargs["elmo_train"]
-        del logargs["flair_dev"]
-        del logargs["flair_test"]
-        del logargs["flair_train"]
-        del logargs["label_smoothing"]
-        del logargs["max_sentences"]
-        del logargs["rnn_cell_dim"]
-        del logargs["test_data"]
-        del logargs["threads"]
-        del logargs["train_data"]
-        del logargs["we_dim"]
-        del logargs["word_dropout"]
-        logargs["bert_embeddings"] = 1 if args.bert_embeddings_train else 0
-        logargs["flair_embeddings"] = 1 if args.flair_train else 0
-        logargs["elmo_embeddings"] = 1 if args.elmo_train else 0
+    # Create logdir name
+    logargs = dict(vars(args).items())
+    logargs["form_wes_model"] = 1 if args.form_wes_model else 0
+    logargs["lemma_wes_model"] = 1 if args.lemma_wes_model else 0
+    del logargs["bert_embeddings_dev"]
+    del logargs["bert_embeddings_test"]
+    del logargs["bert_embeddings_train"]
+    del logargs["beta_2"]
+    del logargs["cle_dim"]
+    del logargs["dev_data"]
+    del logargs["dropout"]
+    del logargs["elmo_dev"]
+    del logargs["elmo_test"]
+    del logargs["elmo_train"]
+    del logargs["flair_dev"]
+    del logargs["flair_test"]
+    del logargs["flair_train"]
+    del logargs["label_smoothing"]
+    del logargs["max_sentences"]
+    del logargs["rnn_cell_dim"]
+    del logargs["test_data"]
+    del logargs["threads"]
+    del logargs["train_data"]
+    del logargs["we_dim"]
+    del logargs["word_dropout"]
+    logargs["bert_embeddings"] = 1 if args.bert_embeddings_train else 0
+    logargs["flair_embeddings"] = 1 if args.flair_train else 0
+    logargs["elmo_embeddings"] = 1 if args.elmo_train else 0
 
-        args.logdir = "logs/{}-{}-{}".format(
-            os.path.basename(__file__),
-            datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S"),
-            ",".join(("{}={}".format(re.sub("(.)[^_]*_?", r"\1", key), re.sub("^.*/", "", value) if type(value) == str else value)
-                      for key, value in sorted(logargs.items())))
-        )
-        if not os.path.exists("logs"): os.mkdir("logs") # TF 1.6 will do this by itself
-        if not os.path.exists(args.logdir): os.mkdir(args.logdir)
+    args.logdir = "logs/{}-{}-{}".format(
+        os.path.basename(__file__),
+        datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S"),
+        ",".join(("{}={}".format(re.sub("(.)[^_]*_?", r"\1", key), re.sub("^.*/", "", value) if type(value) == str else value)
+                  for key, value in sorted(logargs.items())))
+    )
 
-        # Dump passed options to allow future prediction.
-        with open("{}/options.json".format(args.logdir), mode="w") as options_file:
-            json.dump(vars(args), options_file, sort_keys=True)
+    if not os.path.exists("logs"): os.mkdir("logs") # TF 1.6 will do this by itself
+    if not os.path.exists(args.logdir): os.mkdir(args.logdir)
+
+    # Dump passed options to allow future prediction.
+    with open("{}/options.json".format(args.logdir), mode="w") as options_file:
+        json.dump(vars(args), options_file, sort_keys=True)
 
     # Postprocess args
     args.epochs = [(int(epochs), float(lr)) for epochs, lr in (epochs_lr.split(":") for epochs_lr in args.epochs.split(","))]
 
     # Load the data
-    seq2seq = args.decoding == "seq2seq"
     train = morpho_dataset.MorphoDataset(args.train_data, max_sentences=args.max_sentences, bert_embeddings_filename=args.bert_embeddings_train)
     if args.dev_data:
         dev = morpho_dataset.MorphoDataset(args.dev_data, train=train, shuffle_batches=False,  bert_embeddings_filename=args.bert_embeddings_dev)
@@ -619,142 +614,32 @@ if __name__ == "__main__":
                       predict_only=args.predict)
 
 
-
-    train_file = './data/english/train.txt'
-    test_file = './data/english/test.txt'
-    dev_file = './data/english/valid.txt'
-    train_vectors = "./data/english/embeding/train_vectors.txt"
-    test_vectors = "./data/english/embeding/test_vectors.txt"
-    dev_vectors = "./data/english/embeding/dev_vectors.txt"
-    vocab = './data/english/vocab.txt'
-
-    train = load_data(train_file, train_vectors)
-    dev = load_data(dev_file, dev_vectors)
-    test = load_data(test_file, test_vectors)
-
-    model_config = ModelConfig()
-    set_seed(model_config.seed)
-
-    print("\n\n\n\n Strating new exp  \"active\" with params:", 'selecting_strategy', model_config.select_strategy, 'labeling_strategy', model_config.label_strategy, 'budget', model_config.budget, 'init_budget', model_config.init_budget, 'step_budget', model_config.step_budget,
-                'threshold', model_config.threshold, 'seed', model_config.seed)
-
-    #### набираем init данные
-    dataPool = init_data(DataPool(train['texts'], train['labels'], init_num=0), model_config)
-    selected_texts, selected_labels = dataPool.get_selected()
-    selected_ids = dataPool.get_selected_id()
-    stat_in_file(model_config.loginfo, ["initDist", init_distribution(selected_labels), "initbudget", model_config.init_budget,
-                    "initSumPrices", compute_price(selected_labels), "memory", model_config.p.memory_info().rss/1024/1024])
-
-    print("init_distribution", init_distribution(selected_labels),"init_budget", compute_price(selected_labels))
-
-
-    embedings, labels = get_embeding( selected_ids, selected_labels, train['embed'])
-    X_train, X_dev, y_train, y_dev = train_test_split(list(range(len(labels))), list(range(len(labels))), test_size=0.2, random_state=42)
-
-    get_conll_file("train", model_config, [selected_texts[i] for i in X_train] , [embedings[i] for i in X_train], [selected_labels[i] for i in X_train])
-    get_conll_file("dev", model_config, [selected_texts[i] for i in X_dev] , [embedings[i] for i in X_dev], [selected_labels[i] for i in X_dev])
-    get_conll_file("test", model_config, test['texts'], test['embed'], test['labels'])
-
-    #### обучаем init модель
-    os.system("./tagger.py --logpath={} --type_learning='active' --train_data='{}train.txt' --test_data='{}test.txt' --dev_data='{}dev.txt' --bert_embeddings_train=\"{}train_vectors.txt\" --bert_embeddings_test=\"{}test_vectors.txt\" --bert_embeddings_dev=\"{}dev_vectors.txt\"".format(model_config.loginfo,path_data,path_data,path_data,path_data,path_data,path_data))
-
-    print("init_model trained, budget", compute_price(selected_labels), "metrics ", metrics)
-
-    stat_in_file(model_config.loginfo,
-                     ["TrainInitFinished", "len(selected_texts):", len(selected_texts), "budget:", model_config.budget, "init_budget", compute_price(selected_labels),
-                      "devprecision", metrics[0], "devrecall", metrics[1], "devf1", metrics[2], "memory", model_config.p.memory_info().rss/1024/1024])
-
-    ### активка цикл
-    end_marker, iterations_of_learning, sum_prices, sum_perfect, sum_changed, sum_not_changed, sum_not_perfect, perfect, not_perfect, changed, not_changed, thrown_away, price = False, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-    while (selected_texts is None) or sum_prices < model_config.budget - 10 and not end_marker:
-        iterations_of_learning += 1
-
-        ### выбрать несколько примеров с помощью активки и разметить их
-        dataPool, price, perfect, not_perfect, sum_prices = active_learing_sampling(model, dataPool, model_config, train, sum_prices)
-        selected_texts, selected_labels = dataPool.get_selected()
-        selected_ids = dataPool.get_selected_id()
-        embedings, labels = get_embeding(selected_ids, selected_labels, train['embed'])
-        X_train, X_dev, y_train, y_dev = train_test_split(embedings, labels, test_size=0.2, random_state=42)
-        fullcost = compute_price(selected_labels)
-
-        #### обучить новую модель
-
-        model, optimizer, loss, dev_metrics = train_model(X_train, y_train, X_dev, y_dev, dev['embed'], dev['labels'], model_config)
-        #### сохранить результаты
-        print("memory after training", model_config.p.memory_info().rss/1024/1024)
-        print("iter ", iterations_of_learning, "finished, metrics dev", dev_metrics)
-        stat_in_file(model_config.loginfo,
-                 ["SelectIterFinished", iterations_of_learning, "len(selected_texts):", len(selected_texts), "fullcost", compute_price(selected_labels),
-                  "iter_spent_budget:", price, "not_porfect:", not_perfect, "thrown_away:", thrown_away, "perfect:", perfect, "total_spent_budget:", sum_prices,
-                  "devprecision", dev_metrics[0], "devrecall", dev_metrics[1], "devf1", dev_metrics[2], "memory", model_config.p.memory_info().rss/1024/1024])
-
-    tags, scores = get_tags(model, test['embed'],test['labels'], model_config)
-    test_metrics = model.f1_score_span(test['labels'], tags)
-
-    stat_in_file(model_config.loginfo,
-                 ["result", "len(selected_texts):", len(selected_texts), "budget:", model_config.budget, "Init_budget:", model_config.init_budget,
-                  "testprecision", test_metrics[0], "testrecall", test_metrics[1], "testf1", test_metrics[2], "devprecision", dev_metrics[0], "devrecall", dev_metrics[1], "devf1", dev_metrics[2]])
-
-    print("result", "len(selected_texts):", len(selected_texts), "budget:", model_config.budget, "Init_budget:", model_config.init_budget,
-                  "testprecision", test_metrics[0], "testrecall", test_metrics[1], "testf1", test_metrics[2], "devprecision", dev_metrics[0], "devrecall", dev_metrics[1], "devf1", dev_metrics[2])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    train = morpho_dataset.MorphoDataset(args.train_data, max_sentences=args.max_sentences, bert_embeddings_filename=args.bert_embeddings_train)
-    dev = morpho_dataset.MorphoDataset(args.dev_data, train=train, shuffle_batches=False,  bert_embeddings_filename=args.bert_embeddings_dev)
-    test = morpho_dataset.MorphoDataset(args.test_data, train=train, shuffle_batches=False,  bert_embeddings_filename=args.bert_embeddings_test)
-
-    keep_max, best_epoch,epoch = 0, 0, 0
+    # Train
+    keep_max, best_epoch, epoch = 0, 0, 0
     f1s = [-1]
     for epochs, learning_rate in args.epochs:
         while keep_max < model_config.stop_criteria_steps:
-            epoch+=1
+            epoch += 1
             network.train_epoch(train, learning_rate, args)
             dev_score = 0
-            if args.dev_data:
-                dev_score = network.evaluate("dev", dev, args)
-                print("epoch {} devf1 {}".format(epoch, dev_score))
+
+            precision, recall, dev_score = network.evaluate("dev", dev, args)
+            print("epoch {} devf1 {}".format(epoch, dev_score))
             keep_max += 1
             if max(f1s) < dev_score:
                 keep_max = 0
                 best_epoch = epoch
                 network.saver.save(network.session, "{}/model".format(args.logdir), write_meta_graph=False)
             f1s.append(dev_score)
-            stat_in_file(args.logpath, ["   EndEpoch", epoch,  "f1", dev_score,
-                                         "memory", model_config.p.memory_info().rss/1024/1024])
+            stat_in_file(args.logpath, ["   EndEpoch", epoch, "f1", dev_score, "precision", precision, "recall", recall,
+                                        "memory", model_config.p.memory_info().rss / 1024 / 1024])
 
-
+    # Save network
     network.saver.restore(network.session, "{}/model".format(args.logdir))
 
-    test_score = network.evaluate("test", test, args)
-
+    precision, recall, test_score = network.evaluate("test", test, args)
     print("testf1 {}".format(test_score))
-    stat_in_file(args.logpath,
-                     ["TrainInitFinished", "len(selected_texts):", len(selected_texts), "budget:", model_config.budget, "init_budget", compute_price(selected_labels),
-                      "devf1", metrics[2], "memory", model_config.p.memory_info().rss/1024/1024])
-
-    stat_in_file(args.logpath,
-                        ["result", "testf1", test_score])
     shutil.rmtree(args.logdir)
+
+    return network, args, precision, recall, test_score
+

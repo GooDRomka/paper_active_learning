@@ -7,16 +7,16 @@ model_config = ModelConfig()
 train_file = './data/english/train.txt'
 test_file = './data/english/test.txt'
 dev_file = './data/english/valid.txt'
-train_vectors = "./data/english/embeding/train_vectors_lists.txt"
-test_vectors = "./data/english/embeding/test_vectors_lists.txt"
-dev_vectors = "./data/english/embeding/dev_vectors_lists.txt"
+train_vectors = "./data/english/embeding/train_vectors.txt"
+test_vectors = "./data/english/embeding/test_vectors.txt"
+dev_vectors = "./data/english/embeding/dev_vectors.txt"
 vocab = './data/english/vocab.txt'
 
 train = load_data(train_file, train_vectors)
 dev = load_data(dev_file, dev_vectors)
 test = load_data(test_file, test_vectors)
 
-params = [1000,1500,2000,3000,4000,6000,8000,10000,12000, 15000,20000,25000,30000]
+params = [2000,3000,4000,6000,8000,10000,12000, 15000,20000,25000,30000]
 # params = [400000]
 number = find_new_number("logs/simple")
 model_config.loginfo = "logs/simple/" + number + "_loginfo.csv"
