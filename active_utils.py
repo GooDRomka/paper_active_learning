@@ -307,12 +307,13 @@ def active_learing_sampling(model, dataPool, model_config, train, sum_prices):
         tobe_selected_idxs = []
         for id in tobe_selected_idxs_copy:
             cost = len(small_unselected_embedings[id])
-            if price + cost > model_config.budget - sum_prices:
+            if price + cost > min(model_config.step_budget, model_config.budget - sum_prices):
                 end_marker = True
                 break
             else:
                 tobe_selected_idxs.append(id)
                 price += cost
+
         tobe_selected_idxs = np.array(small_unselected_ids)[tobe_selected_idxs]
 
     sum_prices += price

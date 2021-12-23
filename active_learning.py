@@ -61,6 +61,7 @@ def start_active_learning(train, dev, test, model_config):
         get_conll_file("test", model_config, dev['texts'], dev['embed'], dev['labels'])
 
         #### обучаем init модель
+        shutil.rmtree(args.logdir)
         network, args, f1, precision, recall = train_model(model_config)
         #### сохранить результаты
         print("memory after training", model_config.p.memory_info().rss/1024/1024)
@@ -79,6 +80,7 @@ def start_active_learning(train, dev, test, model_config):
                                         bert_embeddings_filename=args.bert_embeddings_test)
 
     testprecision, testrecall, testf1 = network.evaluate("test", test, args)
+    shutil.rmtree(args.logdir)
 
 
 
