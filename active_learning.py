@@ -61,7 +61,7 @@ def start_active_learning(train, dev, test, model_config):
         get_conll_file("test", model_config, dev['texts'], dev['embed'], dev['labels'])
 
         #### обучаем init модель
-        shutil.rmtree(args.logdir)
+
         network, args, f1, precision, recall = train_model(model_config)
         #### сохранить результаты
         print("memory after training", model_config.p.memory_info().rss/1024/1024)
@@ -73,16 +73,8 @@ def start_active_learning(train, dev, test, model_config):
 
 
     get_conll_file("test", model_config, test['texts'], test['embed'], test['labels'])
-    train = morpho_dataset.MorphoDataset(args.train_data, max_sentences=args.max_sentences,
-                                         bert_embeddings_filename=args.bert_embeddings_train)
 
-    test = morpho_dataset.MorphoDataset(args.test_data, train=train, shuffle_batches=False,
-                                        bert_embeddings_filename=args.bert_embeddings_test)
-
-    testprecision, testrecall, testf1 = network.evaluate("test", test, args)
-    shutil.rmtree(args.logdir)
-
-
+    network, args, testf1, testprecision, testrecall = train_model(model_config)
 
     stat_in_file(model_config.loginfo,
                  ["result", "len(selected_texts):", len(selected_texts), "budget:", model_config.budget, "Init_budget:", model_config.init_budget,

@@ -640,6 +640,6 @@ def train_model(model_config):
     precision, recall, test_score = network.evaluate("test", test, args)
     print("testf1 {}".format(test_score))
 
-
+    shutil.rmtree(args.logdir)
     return network, args, precision, recall, test_score
 
