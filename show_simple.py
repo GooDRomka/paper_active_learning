@@ -1,12 +1,10 @@
 import pandas as pd
 import codecs
 import os
-from tqdm import tqdm
 import numpy as np
 import csv
 import json
 import random
-import pylab
 from configs import ModelConfig, ActiveConfig
 import matplotlib.pyplot as plt
 

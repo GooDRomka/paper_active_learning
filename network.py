@@ -525,7 +525,7 @@ def train_model(model_config):
     import os
     import re
 
-    path_data = "data/teprorary" + model_config.number + "/"
+    path_data = "data/teprorary" + str(model_config.number) + "/"
     args = Arguments()
 
 
@@ -631,7 +631,7 @@ def train_model(model_config):
                 best_epoch = epoch
                 network.saver.save(network.session, "{}/model".format(args.logdir), write_meta_graph=False)
             f1s.append(dev_score)
-            stat_in_file(args.logpath, ["   EndEpoch", epoch, "f1", dev_score, "precision", precision, "recall", recall,
+            stat_in_file(model_config.loginfo, ["   EndEpoch", epoch, "f1", dev_score, "precision", precision, "recall", recall,
                                         "memory", model_config.p.memory_info().rss / 1024 / 1024])
 
     # Save network

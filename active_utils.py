@@ -244,8 +244,8 @@ def key_by_value(d,value):
 
 def get_conll_file(file, model_config, sentences, embedings, labels):
 
-    embed_path = "data/teprorary"+str(model_config.number)+"/"+file+"_vectors.txt"
-    conll_path = "data/teprorary"+str(model_config.number)+"/"+file+".txt"
+    embed_path = "data/teprorary" + str(model_config.number)+"/" + file + "_vectors.txt"
+    conll_path = "data/teprorary" + str(model_config.number)+"/" + file + ".txt"
     if not os.path.exists("data/teprorary"+str(model_config.number)+"/"):
         os.makedirs("data/teprorary"+str(model_config.number)+"/")
 
@@ -270,8 +270,6 @@ def get_conll_file(file, model_config, sentences, embedings, labels):
             file_object.write("{}\t_\t_\t{}\n".format(s, l))
         file_object.write("\n")
     file_object.close()
-    print(embedings)
-    # print(len(embedings),len(embedings[0]),len(embedings[0][0]))
 
     with open(embed_path, 'wb') as fp:
         pickle.dump(list(embedings), fp)

@@ -19,9 +19,9 @@ model_config = ModelConfig()
 train_file = './data/english/train.txt'
 test_file = './data/english/test.txt'
 dev_file = './data/english/valid.txt'
-train_vectors = "./data/english/embeding/train_vectors.txt"
-test_vectors = "./data/english/embeding/test_vectors.txt"
-dev_vectors = "./data/english/embeding/dev_vectors.txt"
+train_vectors = "./data/english/embeding/train_vectors_lists.txt"
+test_vectors = "./data/english/embeding/test_vectors_lists.txt"
+dev_vectors = "./data/english/embeding/dev_vectors_lists.txt"
 vocab = './data/english/vocab.txt'
 
 train = load_data(train_file, train_vectors)
@@ -33,9 +33,9 @@ model_config.loginfo = "logs/active/" + number + "_loginfo.csv"
 
 model_config.save_model_path = "saved_models/active_model.pth"
 
-params = [[STRATEGY.RAND, STRATEGY.LAZY, 600, 5000, 0.5],
-          [STRATEGY.RAND, STRATEGY.LAZY, 1000, 5000, 0.5],
-          [STRATEGY.RAND, STRATEGY.LAZY, 1500, 5000, 0.5],
+params = [[STRATEGY.RAND, STRATEGY.NORMAL, 600, 5000, 0.5],
+          [STRATEGY.RAND, STRATEGY.NORMAL, 1000, 5000, 0.5],
+          [STRATEGY.RAND, STRATEGY.NORMAL, 1500, 5000, 0.5],
           ]
 
 seed = 0
