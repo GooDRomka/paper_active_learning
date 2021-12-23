@@ -38,7 +38,7 @@ def read_file_simple(path):
                 stat = {"budget": float(line[2])
                          }
             if line[0] == "result":
-                stat.update({"f1": float(line[2])})
+                stat.update({"f1": float(line[2])/100})
                 experiments.append(stat)
     return pd.DataFrame(experiments)
 

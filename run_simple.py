@@ -7,9 +7,9 @@ model_config = ModelConfig()
 train_file = './data/english/train.txt'
 test_file = './data/english/test.txt'
 dev_file = './data/english/valid.txt'
-train_vectors = "./data/english/embeding/train_vectors.txt"
-test_vectors = "./data/english/embeding/test_vectors.txt"
-dev_vectors = "./data/english/embeding/dev_vectors.txt"
+train_vectors = "./data/english/embeding/train_vectors_lists.txt"
+test_vectors = "./data/english/embeding/test_vectors_lists.txt"
+dev_vectors = "./data/english/embeding/dev_vectors_lists.txt"
 vocab = './data/english/vocab.txt'
 
 train = load_data(train_file, train_vectors)
