@@ -526,7 +526,7 @@ def train_model(model_config):
     import re
 
     path_data = "data/teprorary" + str(model_config.number) + "/"
-    args = Arguments()
+    args = Arguments(path_data)
 
 
     # Create logdir name
