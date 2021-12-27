@@ -494,7 +494,7 @@ if __name__ == "__main__":
     parser.add_argument("--cle_dim", default=128, type=int, help="Character-level embedding dimension.")
     parser.add_argument("--decoding", default="CRF", type=str, help="Decoding: [CRF|ME|LSTM|seq2seq].")
     parser.add_argument("--dev_data", default="./data/teprorary/dev.txt", type=str, help="Dev data.")
-    parser.add_argument("--logpath", default="./logs/simple/01_loginfo.csv", type=str, help="log")
+    parser.add_argument("--logpath", default="./logs/simple/paper_simple_learning.csv", type=str, help="log")
     parser.add_argument("--dropout", default=0.5, type=float, help="Dropout rate.")
     parser.add_argument("--elmo_dev", default=None, type=str, help="ELMo dev embeddings.")
     parser.add_argument("--elmo_test", default=None, type=str, help="ELMo test embeddings.")
