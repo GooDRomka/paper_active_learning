@@ -25,7 +25,7 @@ def read_file_simple_torch(path):
                 stat = {"budget": float(line[2])
                          }
             if line[0] == "result":
-                stat.update({"f1": float(line[10]), "precision": float(line[6]), "recall": float(line[8])})
+                stat.update({"f1": float(line[10])*100, "precision": float(line[6])*100, "recall": float(line[8])*100})
                 experiments.append(stat)
     return pd.DataFrame(experiments)
 
@@ -38,7 +38,7 @@ def read_file_simple(path):
                 stat = {"budget": float(line[2])
                          }
             if line[0] == "result":
-                stat.update({"f1": float(line[2])/100})
+                stat.update({"f1": float(line[2])})
                 experiments.append(stat)
     return pd.DataFrame(experiments)
 
@@ -71,7 +71,7 @@ def read_file_simple_old(path):
             if line[0] == "EndIter":
                 stat["iter"].append([line[14],line[6],line[8],line[10],line[16],line[17],line[18]])
             if line[0] == "Results":
-                stat.update({"f1": float(line[10]), "precision": float(line[6]), "recall": float(line[8]), "epoch":int(line[14])})
+                stat.update({"f1": float(line[10])*100, "precision": float(line[6])*100, "recall": float(line[8])*100, "epoch":int(line[14])})
                 experiments.append(stat)
     return pd.DataFrame(experiments)
 

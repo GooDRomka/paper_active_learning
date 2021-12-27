@@ -34,6 +34,7 @@ model_config.number = number
 model_config.save_model_path = "saved_models/active_model.pth"
 
 params = [[STRATEGY.LC, STRATEGY.LAZY, 500, 8000, 0.5],
+          [STRATEGY.LC, STRATEGY.LAZY, 2000, 8000, 0.5],
           [STRATEGY.LC, STRATEGY.LAZY, 600, 8000, 0.5],
           [STRATEGY.LC, STRATEGY.LAZY, 800, 8000, 0.5],
           [STRATEGY.LC, STRATEGY.LAZY, 1000, 8000, 0.5],
@@ -53,7 +54,7 @@ for i in range(5):
 
                     stat_in_file(model_config.loginfo, ["\n\n"])
                     stat_in_file(model_config.loginfo, ['BEGIN', 'selecting_strategy', model_config.select_strategy, 'labeling_strategy', model_config.label_strategy, 'budget', model_config.budget, 'init_budget', model_config.init_budget, 'step_budget', model_config.step_budget,
-                                    'threshold', model_config.threshold,  'seed', model_config.seed ])
+                                    'threshold', model_config.threshold,  "lr", model_config.learning_rate,"batch_size", model_config.batch_size, 'seed', model_config.seed ])
 
                     start_active_learning(train, dev, test, model_config)
 print("Ya vse")
