@@ -46,7 +46,7 @@ def start_active_learning(train, dev, test, model_config):
         iterations_of_learning += 1
 
         ### выбрать несколько примеров с помощью активки и разметить их
-        dataPool, price, perfect, not_perfect, sum_prices = active_learing_sampling(network, dataPool, model_config, train, sum_prices)
+        dataPool, price, perfect, not_perfect, sum_prices = active_learing_sampling(network, dataPool, model_config, args, train, sum_prices)
         selected_texts, selected_labels = dataPool.get_selected()
         selected_ids = dataPool.get_selected_id()
 
@@ -54,11 +54,11 @@ def start_active_learning(train, dev, test, model_config):
         X_train, X_dev, y_train, y_dev = train_test_split(list(range(len(labels))), list(range(len(labels))),
                                                           test_size=0.2, random_state=42)
 
-        get_conll_file("train", model_config, [selected_texts[i] for i in X_train], [embedings[i] for i in X_train],
-                       [selected_labels[i] for i in X_train])
-        get_conll_file("dev", model_config, [selected_texts[i] for i in X_dev], [embedings[i] for i in X_dev],
-                       [selected_labels[i] for i in X_dev])
-        get_conll_file("test", model_config, dev['texts'], dev['embed'], dev['labels'])
+        # get_conll_file("train", model_config, [selected_texts[i] for i in X_train], [embedings[i] for i in X_train],
+        #                [selected_labels[i] for i in X_train])
+        # get_conll_file("dev", model_config, [selected_texts[i] for i in X_dev], [embedings[i] for i in X_dev],
+        #                [selected_labels[i] for i in X_dev])
+        # get_conll_file("test", model_config, dev['texts'], dev['embed'], dev['labels'])
 
         #### обучаем init модель
 

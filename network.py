@@ -215,129 +215,11 @@ class Network:
                 log_likelihood, transition_params = tf.contrib.crf.crf_log_likelihood(
                     output_layer, self.tags, self.sentence_lens)
                 loss = tf.reduce_mean(-log_likelihood)
-                self.predictions, viterbi_score = tf.contrib.crf.crf_decode(
+                self.predictions, self.viterbi_score = tf.contrib.crf.crf_decode(
                     output_layer, transition_params, self.sentence_lens)
                 self.predictions_training = self.predictions
-            elif args.decoding == "ME": # vanilla maximum entropy
-                output_layer = tf.layers.dense(hidden_layer_dropout, num_tags)
-                weights = tf.sequence_mask(self.sentence_lens, dtype=tf.float32)
-                if args.label_smoothing:
-                    gold_labels = tf.one_hot(self.tags, num_tags) * (1 - args.label_smoothing) + args.label_smoothing / num_tags
-                    loss = tf.losses.softmax_cross_entropy(gold_labels, output_layer, weights=weights)
-                else:
-                    loss = tf.losses.sparse_softmax_cross_entropy(self.tags, output_layer, weights=weights)
-                self.predictions = tf.argmax(output_layer, axis=2)
-                self.predictions_training = self.predictions
-            elif args.decoding in ["LSTM", "seq2seq"]: # Decoder
-                # Generate target embeddings for target chars, of shape [target_chars, args.char_dim].
-                tag_embeddings = tf.get_variable("tag_embeddings", shape=[num_tags, args.we_dim], dtype=tf.float32)
+                self.score_training = self.viterbi_score
 
-                # Embed the target_seqs using the target embeddings.
-                tags_embedded = tf.nn.embedding_lookup(tag_embeddings, self.tags)
-
-                decoder_rnn_cell = rnn_cell(args.rnn_cell_dim)
-
-                # Create a `decoder_layer` -- a fully connected layer with
-                # target_chars neurons used in the decoder to classify into target characters.
-                decoder_layer = tf.layers.Dense(num_tags)
-
-                sentence_lens = self.sentence_lens
-                max_sentence_len = tf.reduce_max(sentence_lens)
-                tags = self.tags
-                # The DecoderTraining will be used during training. It will output logits for each
-                # target character.
-                class DecoderTraining(tf.contrib.seq2seq.Decoder):
-                    @property
-                    def batch_size(self): return tf.shape(hidden_layer_dropout)[0]
-                    @property
-                    def output_dtype(self): return tf.float32 # Type for logits of target characters
-                    @property
-                    def output_size(self): return num_tags # Length of logits for every output
-                    @property
-                    def tag_eow(self): return tag_eow
-
-                    def initialize(self, name=None):
-                        states = decoder_rnn_cell.zero_state(self.batch_size, tf.float32)
-                        inputs = [tf.nn.embedding_lookup(tag_embeddings, tf.fill([self.batch_size], tag_bos)), hidden_layer_dropout[:,0]]
-                        inputs = tf.concat(inputs, axis=1)
-                        if args.decoding == "seq2seq":
-                            predicted_eows = tf.zeros([self.batch_size], dtype=tf.int32)
-                            inputs = (inputs, predicted_eows)
-                        finished = sentence_lens <= 0
-                        return finished, inputs, states
-
-                    def step(self, time, inputs, states, name=None):
-                        if args.decoding == "seq2seq":
-                            inputs, predicted_eows = inputs
-                        outputs, states = decoder_rnn_cell(inputs, states)
-                        outputs = decoder_layer(outputs)
-                        next_input = [tf.nn.embedding_lookup(tag_embeddings, tags[:,time])]
-                        if args.decoding == "seq2seq":
-                            predicted_eows += tf.to_int32(tf.equal(tags[:, time], self.tag_eow))
-                            indices = tf.where(tf.one_hot(tf.minimum(predicted_eows, max_sentence_len - 1), tf.reduce_max(predicted_eows) + 1))
-                            next_input.append(tf.gather_nd(hidden_layer_dropout, indices))
-                        else:
-                            next_input.append(hidden_layer_dropout[:,tf.minimum(time + 1, max_sentence_len - 1)])
-                        next_input = tf.concat(next_input, axis=1)
-                        if args.decoding == "seq2seq":
-                            next_input = (next_input, predicted_eows)
-                            finished = sentence_lens <= predicted_eows
-                        else:
-                            finished = sentence_lens <= time + 1
-                        return outputs, states, next_input, finished
-                output_layer, _, prediction_training_lens = tf.contrib.seq2seq.dynamic_decode(DecoderTraining())
-                self.predictions_training = tf.argmax(output_layer, axis=2, output_type=tf.int32)
-                weights = tf.sequence_mask(prediction_training_lens, dtype=tf.float32)
-                if args.label_smoothing:
-                    gold_labels = tf.one_hot(self.tags, num_tags) * (1 - args.label_smoothing) + args.label_smoothing / num_tags
-                    loss = tf.losses.softmax_cross_entropy(gold_labels, output_layer, weights=weights)
-                else:
-                    loss = tf.losses.sparse_softmax_cross_entropy(self.tags, output_layer, weights=weights)
-
-                # The DecoderPrediction will be used during prediction. It will
-                # directly output the predicted target characters.
-                class DecoderPrediction(tf.contrib.seq2seq.Decoder):
-                    @property
-                    def batch_size(self): return tf.shape(hidden_layer_dropout)[0]
-                    @property
-                    def output_dtype(self): return tf.int32 # Type for predicted target characters
-                    @property
-                    def output_size(self): return 1 # Will return just one output
-                    @property
-                    def tag_eow(self): return tag_eow
-
-                    def initialize(self, name=None):
-                        states = decoder_rnn_cell.zero_state(self.batch_size, tf.float32)
-                        inputs = [tf.nn.embedding_lookup(tag_embeddings, tf.fill([self.batch_size], tag_bos)), hidden_layer_dropout[:,0]]
-                        inputs = tf.concat(inputs, axis=1)
-                        if args.decoding == "seq2seq":
-                            predicted_eows = tf.zeros([self.batch_size], dtype=tf.int32)
-                            inputs = (inputs, predicted_eows)
-                        finished = sentence_lens <= 0
-                        return finished, inputs, states
-
-                    def step(self, time, inputs, states, name=None):
-                        if args.decoding == "seq2seq":
-                            inputs, predicted_eows = inputs
-                        outputs, states = decoder_rnn_cell(inputs, states)
-                        outputs = decoder_layer(outputs)
-                        outputs = tf.argmax(outputs, axis=1, output_type=self.output_dtype)
-                        next_input = [tf.nn.embedding_lookup(tag_embeddings, outputs)]
-                        if args.decoding == "seq2seq":
-                            predicted_eows += tf.to_int32(tf.equal(outputs, self.tag_eow))
-                            indices = tf.where(tf.one_hot(tf.minimum(predicted_eows, max_sentence_len - 1), tf.reduce_max(predicted_eows) + 1))
-                            next_input.append(tf.gather_nd(hidden_layer_dropout, indices))
-                        else:
-                            next_input.append(hidden_layer_dropout[:,tf.minimum(time + 1, max_sentence_len - 1)])
-                        next_input = tf.concat(next_input, axis=1)
-                        if args.decoding == "seq2seq":
-                            next_input = (next_input, predicted_eows)
-                            finished = sentence_lens <= predicted_eows
-                        else:
-                            finished = sentence_lens <= time + 1
-                        return outputs, states, next_input, finished
-                self.predictions, _, _ = tf.contrib.seq2seq.dynamic_decode(
-                        DecoderPrediction(), maximum_iterations=3*tf.reduce_max(self.sentence_lens) + 10)
 
             # Saver
             self.saver = tf.compat.v1.train.Saver(max_to_keep=1)
@@ -455,6 +337,66 @@ class Network:
             return precision, recall, f1
         else:
             raise ValueError("Unknown corpus {}".format(args.corpus))
+
+    def get_tags(self, dataset, args):
+        tags = []
+        while not dataset.epoch_finished():
+            seq2seq = args.decoding == "seq2seq"
+            batch_dict = dataset.next_batch(args.batch_size, args.form_wes_model, args.lemma_wes_model, args.fasttext_model, args.including_charseqs, seq2seq=seq2seq)
+            targets = [self.predictions]
+            scores = [self.viterbi_score]
+            train = morpho_dataset.MorphoDataset(args.train_data, max_sentences=args.max_sentences,
+                                                 bert_embeddings_filename=args.bert_embeddings_train)
+
+            feeds = {self.sentence_lens: batch_dict["sentence_lens"],
+                    self.form_ids: batch_dict["word_ids"][dataset.FORMS],
+                    self.lemma_ids: batch_dict["word_ids"][train.LEMMAS],
+                    self.pos_ids: batch_dict["word_ids"][train.POS],
+                    self.is_training: False}
+
+            if args.form_wes_model: # pretrained form embeddings
+                feeds[self.pretrained_form_wes] = batch_dict["batch_form_pretrained_wes"]
+            if args.lemma_wes_model: # pretrained lemma embeddings
+                feeds[self.pretrained_lemma_wes] = batch_dict["batch_lemma_pretrained_wes"]
+            if args.fasttext_model: # fasttext form embeddings
+                feeds[self.pretrained_fasttext_wes] = batch_dict["batch_form_fasttext_wes"]
+            if args.bert_embeddings_dev or args.bert_embeddings_test: # BERT embeddings
+                feeds[self.pretrained_bert_wes] = batch_dict["batch_bert_wes"]
+            if args.flair_dev or args.flair_test: # flair embeddings
+                feeds[self.pretrained_flair_wes] = batch_dict["batch_flair_wes"]
+            if args.elmo_dev or args.elmo_test: # elmo embeddings
+                feeds[self.pretrained_elmo_wes] = batch_dict["batch_elmo_wes"]
+
+            if args.including_charseqs: # character-level embeddings
+                feeds[self.form_charseqs] = batch_dict["batch_charseqs"][dataset.FORMS]
+                feeds[self.form_charseq_lens] = batch_dict["batch_charseq_lens"][dataset.FORMS]
+                feeds[self.form_charseq_ids] = batch_dict["batch_charseq_ids"][dataset.FORMS]
+
+                feeds[self.lemma_charseqs] = batch_dict["batch_charseqs"][dataset.LEMMAS]
+                feeds[self.lemma_charseq_lens] = batch_dict["batch_charseq_lens"][dataset.LEMMAS]
+                feeds[self.lemma_charseq_ids] = batch_dict["batch_charseq_ids"][dataset.LEMMAS]
+
+
+            crf_out = self.session.run(targets, feeds)
+            print(crf_out)
+            tags.extend(crf_out[0])
+            scores.extend(crf_out[1])
+
+
+        tags_res = []
+        scores_res = []
+        forms = dataset.factors[dataset.FORMS].strings
+        for s in range(len(forms)):
+            j = 0
+            sent = []
+            score_sent = []
+            for i in range(len(forms[s])):
+                sent.append(dataset.factors[dataset.TAGS].words[tags[s][i]])
+                score_sent.append(scores[s])
+            tags_res.append(sent)
+            scores_res.append(score_sent)
+        return tags_res, scores_res
+
 
 
     def predict(self, dataset_name, dataset, args, prediction_file, evaluating=False):
@@ -641,5 +583,6 @@ def train_model(model_config):
     print("testf1 {}".format(test_score))
 
     shutil.rmtree(args.logdir)
+
     return network, args, precision, recall, test_score
 

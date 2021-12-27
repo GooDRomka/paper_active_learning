@@ -30,15 +30,15 @@ test = load_data(test_file, test_vectors)
 
 number = find_new_number("logs/active")
 model_config.loginfo = "logs/active/" + number + "_loginfo.csv"
-
+model_config.number = number
 model_config.save_model_path = "saved_models/active_model.pth"
 
-params = [[STRATEGY.RAND, STRATEGY.NORMAL, 500, 8000, 0.5],
-          [STRATEGY.RAND, STRATEGY.NORMAL, 600, 8000, 0.5],
-          [STRATEGY.RAND, STRATEGY.NORMAL, 800, 8000, 0.5],
-          [STRATEGY.RAND, STRATEGY.NORMAL, 1000, 8000, 0.5],
-          [STRATEGY.RAND, STRATEGY.NORMAL, 1200, 8000, 0.5],
-          [STRATEGY.RAND, STRATEGY.NORMAL, 1500, 8000, 0.5],
+params = [[STRATEGY.RAND, STRATEGY.LAZY, 500, 8000, 0.5],
+          [STRATEGY.LC, STRATEGY.LAZY, 600, 8000, 0.5],
+          [STRATEGY.LC, STRATEGY.LAZY, 800, 8000, 0.5],
+          [STRATEGY.LC, STRATEGY.LAZY, 1000, 8000, 0.5],
+          [STRATEGY.LC, STRATEGY.LAZY, 1200, 8000, 0.5],
+          [STRATEGY.LC, STRATEGY.LAZY, 1500, 8000, 0.5],
           ]
 
 seed = 0
