@@ -33,7 +33,7 @@ def start_active_learning(train, dev, test, model_config):
 
 
     #### обучаем init модель
-    network, args, f1, precision, recall = train_model(model_config)
+    network,  args, train_m, f1, precision, recall = train_model(model_config)
     print("init_model trained, budget", compute_price(selected_labels), "metrics ", f1, precision, recall)
 
     stat_in_file(model_config.loginfo,
@@ -46,7 +46,7 @@ def start_active_learning(train, dev, test, model_config):
         iterations_of_learning += 1
 
         ### выбрать несколько примеров с помощью активки и разметить их
-        dataPool, price, perfect, not_perfect, sum_prices = active_learing_sampling(network, dataPool, model_config, args, train, sum_prices)
+        dataPool, price, perfect, not_perfect, sum_prices = active_learing_sampling(network, dataPool, model_config, args, train_m, train, sum_prices)
         selected_texts, selected_labels = dataPool.get_selected()
         selected_ids = dataPool.get_selected_id()
 
@@ -54,15 +54,15 @@ def start_active_learning(train, dev, test, model_config):
         X_train, X_dev, y_train, y_dev = train_test_split(list(range(len(labels))), list(range(len(labels))),
                                                           test_size=0.2, random_state=42)
 
-        # get_conll_file("train", model_config, [selected_texts[i] for i in X_train], [embedings[i] for i in X_train],
-        #                [selected_labels[i] for i in X_train])
-        # get_conll_file("dev", model_config, [selected_texts[i] for i in X_dev], [embedings[i] for i in X_dev],
-        #                [selected_labels[i] for i in X_dev])
-        # get_conll_file("test", model_config, dev['texts'], dev['embed'], dev['labels'])
+        get_conll_file("train", model_config, [selected_texts[i] for i in X_train], [embedings[i] for i in X_train],
+                       [selected_labels[i] for i in X_train])
+        get_conll_file("dev", model_config, [selected_texts[i] for i in X_dev], [embedings[i] for i in X_dev],
+                       [selected_labels[i] for i in X_dev])
+        get_conll_file("test", model_config, dev['texts'], dev['embed'], dev['labels'])
 
         #### обучаем init модель
 
-        network, args, f1, precision, recall = train_model(model_config)
+        network,  args, train_m, f1, precision, recall = train_model(model_config)
         #### сохранить результаты
         print("memory after training", model_config.p.memory_info().rss/1024/1024)
         print("iter ", iterations_of_learning, "finished, metrics dev", f1, precision, recall)
@@ -74,7 +74,7 @@ def start_active_learning(train, dev, test, model_config):
 
     get_conll_file("test", model_config, test['texts'], test['embed'], test['labels'])
 
-    network, args, testf1, testprecision, testrecall = train_model(model_config)
+    network, args, train_m, testf1, testprecision, testrecall = train_model(model_config)
 
     stat_in_file(model_config.loginfo,
                  ["result", "len(selected_texts):", len(selected_texts), "budget:", model_config.budget, "Init_budget:", model_config.init_budget,

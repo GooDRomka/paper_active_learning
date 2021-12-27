@@ -16,6 +16,7 @@ from utils import *
 from configs import *
 from sklearn.model_selection import train_test_split
 import os, psutil
+from seqeval.metrics import classification_report, f1_score,precision_score,recall_score
 
 from active_utils import *
 import json
@@ -220,7 +221,7 @@ class Network:
                 self.predictions_training = self.predictions
                 self.score_training = self.viterbi_score
 
-
+            # print("vs", self.viterbi_score)
             # Saver
             self.saver = tf.compat.v1.train.Saver(max_to_keep=1)
             if predict_only: return
@@ -377,10 +378,8 @@ class Network:
                 feeds[self.lemma_charseq_ids] = batch_dict["batch_charseq_ids"][dataset.LEMMAS]
 
 
-            crf_out = self.session.run(targets, feeds)
-            print(crf_out)
-            tags.extend(crf_out[0])
-            scores.extend(crf_out[1])
+            # print("TAGS ",self.session.run(targets, feeds)[0], self.viterbi_score)
+            tags.extend(self.session.run(targets, feeds)[0])
 
 
         tags_res = []
@@ -392,11 +391,27 @@ class Network:
             score_sent = []
             for i in range(len(forms[s])):
                 sent.append(dataset.factors[dataset.TAGS].words[tags[s][i]])
-                score_sent.append(scores[s])
             tags_res.append(sent)
-            scores_res.append(score_sent)
+            scores_res.append(1)
         return tags_res, scores_res
 
+    def f1_score_span(self, labels, tags=None, isList=True):
+        if isList:
+           all_labels, all_tags = self.make_list_of_words(tags, labels)
+        else:
+            all_labels, all_tags  =  labels, tags
+        new_pr, new_re, new_f1 = precision_score([all_labels], [all_tags]), recall_score([all_labels], [all_tags]), f1_score([all_labels], [all_tags])
+        return new_pr, new_re, new_f1
+
+    def make_list_of_words(self, tags, labels):
+        all_tags = []
+        all_labels = []
+
+        for tag_n, label_n in zip(tags, labels):
+            for tag, label in zip(tag_n, label_n):
+                all_tags.append(tag)
+                all_labels.append(label)
+        return  all_labels, all_tags
 
 
     def predict(self, dataset_name, dataset, args, prediction_file, evaluating=False):
@@ -583,6 +598,5 @@ def train_model(model_config):
     print("testf1 {}".format(test_score))
 
     shutil.rmtree(args.logdir)
-
-    return network, args, precision, recall, test_score
+    return network, args, train, precision, recall, test_score
 

@@ -224,8 +224,8 @@ class ActiveStrategy(object):
 
 
 
-def predict_precision_span(model, args, model_config,  texts, labels, embedings):
-    dataset = create_temp_dataset(model_config, args,  texts, embedings, labels)
+def predict_precision_span(model, args, train_m, model_config,  texts, labels, embedings):
+    dataset = create_temp_dataset(model_config, train_m,  texts, embedings, labels)
     tags, _ = model.get_tags(dataset, args)
     scores = []
     for label, text, tag in zip(labels, texts, tags):
@@ -275,16 +275,17 @@ def get_conll_file(file, model_config, sentences, embedings, labels):
     with open(embed_path, 'wb') as fp:
         pickle.dump(list(embedings), fp)
 
-def create_temp_dataset(model_config, args, texts, embedings, labels ):
+def create_temp_dataset(model_config, train_m,  texts, embedings, labels ):
     get_conll_file("temp", model_config, texts, embedings, labels)
     embed_path = "data/teprorary" + str(model_config.number)+"/" + "temp" + "_vectors.txt"
     conll_path = "data/teprorary" + str(model_config.number)+"/" + "temp" + ".txt"
-    dataset = morpho_dataset.MorphoDataset(conll_path, max_sentences=args.max_sentences,
-                                             bert_embeddings_filename=embed_path)
+
+    dataset = morpho_dataset.MorphoDataset(conll_path, train=train_m, shuffle_batches=False,  bert_embeddings_filename=embed_path)
+
 
     return dataset
 
-def active_learing_sampling(model, dataPool, model_config, args, train, sum_prices):
+def active_learing_sampling(model, dataPool, model_config, args,train_m, train, sum_prices):
     unselected_ids = dataPool.get_unselected_id()
     small_unselected_ids, small_unselected_texts, small_unselected_labels = dataPool.get_unselected_small(model_config.step_budget)
     small_unselected_embedings, _ = get_embeding( np.array(unselected_ids)[small_unselected_ids], small_unselected_labels,
@@ -292,7 +293,7 @@ def active_learing_sampling(model, dataPool, model_config, args, train, sum_pric
     tobe_selected_idxs  = None
 
     if model_config.select_strategy == STRATEGY.LC:
-        dataset = create_temp_dataset(model_config, args, small_unselected_texts, small_unselected_embedings, small_unselected_labels)
+        dataset = create_temp_dataset(model_config, train_m, small_unselected_texts, small_unselected_embedings, small_unselected_labels)
         tags, scores = model.get_tags(dataset, args)
         tobe_selected_idxs, tobe_selected_scores = ActiveStrategy.lc_sampling(scores, small_unselected_embedings,
                                                                               model_config.step_budget)
@@ -304,7 +305,7 @@ def active_learing_sampling(model, dataPool, model_config, args, train, sum_pric
     price = 0
 
     if model_config.label_strategy == STRATEGY.LAZY: #разметка проверяется оракулом, испольщуем PREDICT, а не GOLD
-        scores, predicted_labels = predict_precision_span(model, args, model_config, small_unselected_texts, small_unselected_labels, small_unselected_embedings)
+        scores, predicted_labels = predict_precision_span(model, args, train_m, model_config, small_unselected_texts, small_unselected_labels, small_unselected_embedings)
         tobe_selected_idxs, tobe_selected_scores, thrown_away, perfect, not_perfect, price = ActiveStrategy.sampling_precision(tobe_selected_idxs=tobe_selected_idxs, texts=small_unselected_embedings, scores=scores, threshold=model_config.threshold, step=min(model_config.step_budget, model_config.budget - sum_prices))
         changed, not_changed = dataPool.update_labels(tobe_selected_idxs, small_unselected_ids, predicted_labels, model_config)
         tobe_selected_idxs = np.array(small_unselected_ids)[tobe_selected_idxs]

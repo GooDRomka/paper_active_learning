@@ -14,7 +14,7 @@ class ModelConfig(object):
         self.budget = 15000
         self.select_strategy = STRATEGY.PRECISION
         self.label_strategy = ""
-        self.threshold = 0
+        self.threshold = 0.5
         self.select_strategy = STRATEGY.RAND
         self.embed_strategy = 'bert'
         self.save_model_path = "saved_models/model.pth"
