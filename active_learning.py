@@ -46,7 +46,7 @@ def start_active_learning(train, dev, test, model_config):
         iterations_of_learning += 1
 
         ### выбрать несколько примеров с помощью активки и разметить их
-        dataPool, price, perfect, not_perfect, sum_prices = active_learing_sampling(network, dataPool, model_config, args, train_m, train, sum_prices)
+        dataPool, price, perfect, not_perfect, sum_prices = active_learing_sampling(network, dataPool, model_config, args, train_m, train, sum_prices, iterations_of_learning)
         selected_texts, selected_labels = dataPool.get_selected()
         selected_ids = dataPool.get_selected_id()
 
@@ -67,7 +67,7 @@ def start_active_learning(train, dev, test, model_config):
         print("memory after training", model_config.p.memory_info().rss/1024/1024)
         print("iter ", iterations_of_learning, "finished, metrics dev", f1, precision, recall)
         stat_in_file(model_config.loginfo,
-                 ["SelectIterFinished", iterations_of_learning, "len(selected_texts):", len(selected_texts), "fullcost", compute_price(selected_labels),
+                 ["IterFinished", iterations_of_learning, "len(selected_texts):", len(selected_texts), "fullcost", compute_price(selected_labels),
                   "iter_spent_budget:", price, "not_porfect:", not_perfect, "thrown_away:", thrown_away, "perfect:", perfect, "total_spent_budget:", sum_prices,
                   "devprecision", precision, "devrecall", recall, "devf1", f1, "memory", model_config.p.memory_info().rss/1024/1024])
 

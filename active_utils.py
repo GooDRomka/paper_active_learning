@@ -285,7 +285,7 @@ def create_temp_dataset(model_config, train_m,  texts, embedings, labels ):
 
     return dataset
 
-def active_learing_sampling(model, dataPool, model_config, args,train_m, train, sum_prices):
+def active_learing_sampling(model, dataPool, model_config, args,train_m, train, sum_prices, iterations_of_learning):
     unselected_ids = dataPool.get_unselected_id()
     small_unselected_ids, small_unselected_texts, small_unselected_labels = dataPool.get_unselected_small(model_config.step_budget)
     small_unselected_embedings, _ = get_embeding( np.array(unselected_ids)[small_unselected_ids], small_unselected_labels,
@@ -306,7 +306,7 @@ def active_learing_sampling(model, dataPool, model_config, args,train_m, train, 
 
     if model_config.label_strategy == STRATEGY.LAZY: #разметка проверяется оракулом, испольщуем PREDICT, а не GOLD
         scores, predicted_labels = predict_precision_span(model, args, train_m, model_config, small_unselected_texts, small_unselected_labels, small_unselected_embedings)
-        tobe_selected_idxs, tobe_selected_scores, thrown_away, perfect, not_perfect, price = ActiveStrategy.sampling_precision(tobe_selected_idxs=tobe_selected_idxs, texts=small_unselected_embedings, scores=scores, threshold=model_config.threshold, step=min(model_config.step_budget, model_config.budget - sum_prices))
+        tobe_selected_idxs, tobe_selected_scores, thrown_away, perfect, not_perfect, price = ActiveStrategy.sampling_precision(tobe_selected_idxs=tobe_selected_idxs, texts=small_unselected_texts, scores=scores, threshold=model_config.threshold, step=min(model_config.step_budget, model_config.budget - sum_prices))
         changed, not_changed = dataPool.update_labels(tobe_selected_idxs, small_unselected_ids, predicted_labels, model_config)
         tobe_selected_idxs = np.array(small_unselected_ids)[tobe_selected_idxs]
 
@@ -327,6 +327,11 @@ def active_learing_sampling(model, dataPool, model_config, args,train_m, train, 
     sum_prices += price
     dataPool.update_pool()
     dataPool.update(tobe_selected_idxs)
+    selected_texts,selected_labels = dataPool.get_selected()
+    stat_in_file(model_config.loginfo,
+                 ["Selection", iterations_of_learning, "len(selected_texts):", len(selected_texts), "fullcost", compute_price(selected_labels),
+                  "iter_spent_budget:", price, "not_porfect:", not_perfect, "thrown_away:", thrown_away, "perfect:", perfect, "total_spent_budget:", sum_prices,
+                   "memory", model_config.p.memory_info().rss/1024/1024])
     return dataPool, price, perfect, not_perfect, sum_prices
 
 def init_data(dataPool,model_config):

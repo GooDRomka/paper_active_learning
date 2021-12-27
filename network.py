@@ -219,7 +219,7 @@ class Network:
                 self.predictions, self.viterbi_score = tf.contrib.crf.crf_decode(
                     output_layer, transition_params, self.sentence_lens)
                 self.predictions_training = self.predictions
-                self.score_training = self.viterbi_score
+
 
             # print("vs", self.viterbi_score)
             # Saver
@@ -341,6 +341,7 @@ class Network:
 
     def get_tags(self, dataset, args):
         tags = []
+        scors = []
         while not dataset.epoch_finished():
             seq2seq = args.decoding == "seq2seq"
             batch_dict = dataset.next_batch(args.batch_size, args.form_wes_model, args.lemma_wes_model, args.fasttext_model, args.including_charseqs, seq2seq=seq2seq)
@@ -378,8 +379,8 @@ class Network:
                 feeds[self.lemma_charseq_ids] = batch_dict["batch_charseq_ids"][dataset.LEMMAS]
 
 
-            # print("TAGS ",self.session.run(targets, feeds)[0], self.viterbi_score)
             tags.extend(self.session.run(targets, feeds)[0])
+            scors.extend(self.session.run(scores, feeds)[0])
 
 
         tags_res = []
@@ -392,7 +393,7 @@ class Network:
             for i in range(len(forms[s])):
                 sent.append(dataset.factors[dataset.TAGS].words[tags[s][i]])
             tags_res.append(sent)
-            scores_res.append(1)
+            scores_res.append(scors[s])
         return tags_res, scores_res
 
     def f1_score_span(self, labels, tags=None, isList=True):
