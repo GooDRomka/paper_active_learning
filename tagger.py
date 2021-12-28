@@ -17,7 +17,7 @@ import sys
 import fasttext
 import numpy as np
 import  tensorflow as tf
-import word2vec
+from gensim.models import word2vec
 
 import morpho_dataset
 from configs import *
