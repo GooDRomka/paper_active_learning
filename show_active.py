@@ -41,7 +41,7 @@ def read_file_active(path, scale):
                 spentprice = float(line[15])
                 spent_budget = spent_budget+step_budget*scale
 
-            if line[0] == "SelectIterFinished":
+            if line[0] == "IterFinished":
                 stat['active_iteration'].append({"bestf1dev": float(line[21]), "bestprecisiondev": float(line[17]), "bestrecalldev": float(line[19]),"budget": budget, "init_budget": init_budget, "step_budget":step_budget ,"spent_budget":spent_budget})
 
             if line[0] == "result":

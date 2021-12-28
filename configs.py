@@ -23,7 +23,7 @@ class ModelConfig(object):
         self.batch_size = 8
         self.dropout = 0.5
         self.number = 0
-
+        self.process = 1
 
 
         # self.lstm_size = 256

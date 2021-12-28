@@ -4,16 +4,15 @@ from active_learning import start_active_learning
 import sys
 
 try:
-    seed_cmd = sys.argv[1]
+    processN = sys.argv[2]
+    total_num_of_process = sys.argv[1]
 except Exception:
-    seed_cmd = "0"
+    processN = "1"
+    total_num_of_process = "1"
 
-if float(seed_cmd) ==0:
-    exp = "0"
-elif float(seed_cmd) ==30:
-    exp = "1"
-else:
-    exp = "2"
+
+
+process = int(processN)
 
 model_config = ModelConfig()
 train_file = './data/english/train.txt'
@@ -32,14 +31,15 @@ number = find_new_number("logs/active")
 model_config.loginfo = "logs/active/" + number + "_loginfo.csv"
 model_config.number = number
 model_config.save_model_path = "saved_models/active_model.pth"
+model_config.process = int(total_num_of_process)
 
-params = [[STRATEGY.LC, STRATEGY.LAZY, 500, 8000, 0.5],
+params = [[STRATEGY.LC, STRATEGY.LAZY, 800, 8000, 0.5],
           [STRATEGY.LC, STRATEGY.LAZY, 2000, 8000, 0.5],
-          [STRATEGY.LC, STRATEGY.LAZY, 600, 8000, 0.5],
-          [STRATEGY.LC, STRATEGY.LAZY, 800, 8000, 0.5],
-          [STRATEGY.LC, STRATEGY.LAZY, 1000, 8000, 0.5],
+          [STRATEGY.LC, STRATEGY.LAZY, 3000, 8000, 0.5],
+          [STRATEGY.LC, STRATEGY.LAZY, 2400, 8000, 0.5],
+          [STRATEGY.LC, STRATEGY.LAZY, 4000, 8000, 0.5],
           [STRATEGY.LC, STRATEGY.LAZY, 1200, 8000, 0.5],
-          [STRATEGY.LC, STRATEGY.LAZY, 1500, 8000, 0.5],
+          [STRATEGY.LC, STRATEGY.LAZY, 1600, 8000, 0.5],
           ]
 
 seed = 0
@@ -47,8 +47,8 @@ for i in range(5):
         for param in params:
             for j in range(2):
                 seed += 1
-                if seed>=float(seed_cmd):
-                    model_config.save_model_path = "saved_models/active_model"+exp+".pth"
+                if seed<process*((10*len(params))//model_config.process) and seed>=(process-1)*((10*len(params))//model_config.process):
+                    model_config.save_model_path = "saved_models/active_model"+str(process)+".pth"
                     model_config.select_strategy, model_config.label_strategy, model_config.init_budget, model_config.budget, model_config.threshold = param
                     model_config.seed = seed
 
