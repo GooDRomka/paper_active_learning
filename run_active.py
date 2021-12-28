@@ -28,7 +28,8 @@ dev = load_data(dev_file, dev_vectors)
 test = load_data(test_file, test_vectors)
 
 number = find_new_number("logs/active")
-model_config.loginfo = "/mnt/nfs-storage/logs/active/" + number + "_loginfo.csv"
+os.makedirs("mnt/nfs-storage/logs/active/", exist_ok=False)
+model_config.loginfo = "mnt/nfs-storage/logs/active/" + number + "_loginfo.csv"
 model_config.number = number
 model_config.save_model_path = "saved_models/active_model.pth"
 model_config.process = int(total_num_of_process)
