@@ -9,12 +9,12 @@ class ModelConfig(object):
         self.tag_to_ix = {"<START>": 0, "<STOP>": 1, 'B-LOC': 2, 'I-LOC': 3, 'B-PER': 4, 'I-PER': 5, 'B-ORG': 6, 'I-ORG': 7, 'B-MISC': 8, 'I-MISC': 9, "O": 10}
         self.learning_rate = 0.003
         self.init_budget = 5000
-        self.step_budget = 1500
+        self.step_budget = 500
         self.stop_criteria_steps = 14
         self.budget = 15000
         self.select_strategy = STRATEGY.PRECISION
         self.label_strategy = ""
-        self.threshold = 0
+        self.threshold = 0.5
         self.select_strategy = STRATEGY.RAND
         self.embed_strategy = 'bert'
         self.save_model_path = "saved_models/model.pth"
@@ -23,7 +23,7 @@ class ModelConfig(object):
         self.batch_size = 8
         self.dropout = 0.5
         self.number = 0
-
+        self.process = 1
 
 
         # self.lstm_size = 256
