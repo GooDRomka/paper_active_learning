@@ -15,21 +15,21 @@ except Exception:
 process = int(processN)
 
 model_config = ModelConfig()
-train_file = '/mnt/nfs-storage/kozhevnikov/data/english/train.txt'
-test_file = '/mnt/nfs-storage/kozhevnikov/data/english/test.txt'
-dev_file = '/mnt/nfs-storage/kozhevnikov/data/english/valid.txt'
-train_vectors = "/mnt/nfs-storage/kozhevnikov/data/english/embeding/train_vectors_lists.txt"
-test_vectors = "/mnt/nfs-storage/kozhevnikov/data/english/embeding/test_vectors_lists.txt"
-dev_vectors = "/mnt/nfs-storage/kozhevnikov/data/english/embeding/dev_vectors_lists.txt"
-vocab = '/mnt/nfs-storage/kozhevnikov/data/english/vocab.txt'
+train_file = '/mnt/nfs-storage/data/english/train.txt'
+test_file = '/mnt/nfs-storage/data/english/test.txt'
+dev_file = '/mnt/nfs-storage/data/english/valid.txt'
+train_vectors = "/mnt/nfs-storage/data/english/embeding/train_vectors_lists.txt"
+test_vectors = "/mnt/nfs-storage/data/english/embeding/test_vectors_lists.txt"
+dev_vectors = "/mnt/nfs-storage/data/english/embeding/dev_vectors_lists.txt"
+vocab = '/mnt/nfs-storage/data/english/vocab.txt'
 
 train = load_data(train_file, train_vectors)
 dev = load_data(dev_file, dev_vectors)
 test = load_data(test_file, test_vectors)
 
-os.makedirs("/mnt/nfs-storage/kozhevnikov/logs/active", exist_ok=True)
-number = find_new_number("/mnt/nfs-storage/kozhevnikov/logs/active")
-model_config.loginfo = "/mnt/nfs-storage/kozhevnikov/logs/active" + number + "_loginfo.csv"
+os.makedirs("/mnt/nfs-storage/logs/active", exist_ok=True)
+number = find_new_number("/mnt/nfs-storage/logs/active")
+model_config.loginfo = "/mnt/nfs-storage/logs/active" + number + "_loginfo.csv"
 
 model_config.number = number
 model_config.save_model_path = "saved_models/active_model.pth"

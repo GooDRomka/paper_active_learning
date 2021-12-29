@@ -46,7 +46,7 @@ class Arguments(object):
         self.cle_dim=128
         self.decoding="CRF"
 
-        self.logpath="/mnt/nfs-storage/kozhevnikov/logs/active/00_loginfo.csv"
+        self.logpath="/mnt/nfs-storage/logs/active/00_loginfo.csv"
         self.dropout=0.5
         self.elmo_dev=None
         self.elmo_test=None
