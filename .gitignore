@@ -3,3 +3,5 @@ logs
 /logs/
 /venv/
 /report/
+/data/
+/res_from_cluster/
