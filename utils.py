@@ -133,7 +133,7 @@ def set_seed(seed):
     np.random.seed(seed)
     os.environ['PYTHONHASHSEED'] = str(seed)
     ops.reset_default_graph()
-    tf.random.set_random_seed(seed)
+    tf.random.set_seed(seed)
 
 def find_new_number(directory):
     result = 0
