@@ -37,12 +37,14 @@ def read_file_active(path, scale):
                 stat['active_iteration'].append({"bestf1dev": float(line[12]), "bestprecisiondev": float(line[8]), "bestrecalldev": float(line[10]),"budget": budget, "init_budget": init_budget, "step_budget":step_budget ,"spent_budget":spent_budget})
 
             if line[0] == "Selection":
+                added_price = float(line[5]) - fullcost
                 fullcost = float(line[5])
                 spentprice = float(line[15])
                 spent_budget = spent_budget+step_budget*scale
 
+
             if line[0] == "IterFinished":
-                stat['active_iteration'].append({"bestf1dev": float(line[21]), "bestprecisiondev": float(line[17]), "bestrecalldev": float(line[19]),"budget": budget, "init_budget": init_budget, "step_budget":step_budget ,"spent_budget":spent_budget})
+                stat['active_iteration'].append({"bestf1dev": float(line[21]), "bestprecisiondev": float(line[17]), "bestrecalldev": float(line[19]),"added_price": added_price,"budget": budget, "init_budget": init_budget, "step_budget":step_budget ,"spent_budget":spent_budget})
 
             if line[0] == "result":
                 stat.update({"f1test": float(line[12]), "precisiontest": float(line[8]), "recalltest": float(line[10]), "cost_of_train": fullcost,
@@ -103,7 +105,7 @@ if __name__ == '__main__':
                 iterations.append(it)
         iterations = pd.DataFrame(iterations)
 
-        iterations = iterations.groupby(['budget', 'init_budget','step_budget', 'spent_budget'],as_index=False).agg({'bestf1dev': ['mean','std'], 'bestprecisiondev': ['mean','std'], 'bestrecalldev': ['mean','std']})
+        iterations = iterations.groupby(['budget', 'init_budget','step_budget', 'spent_budget'],as_index=False).agg({'added_price': ['mean','std'],'bestf1dev': ['mean','std'], 'bestprecisiondev': ['mean','std'], 'bestrecalldev': ['mean','std']})
         experiments = experiments.groupby(['budget','init_budget','step_budget']).agg(
             {'devf1': ['mean', 'std'], 'devprecision': ['mean', 'std'], 'devrecall': ['mean', 'std']})
         init_budget, budget, step_budget = pd.unique(iterations['init_budget']),pd.unique(iterations['budget']),pd.unique(iterations['step_budget'])
@@ -120,7 +122,10 @@ if __name__ == '__main__':
             df = iterations[iterations['init_budget']==i]
             # print(df)
             plt.plot(df['spent_budget'],df[('bestf1dev','mean')], label=str(i), marker="o", color=colors[j])
+            # plt.plot(df['spent_budget'], df[('added_price', 'mean')], label=str(i), marker="o", color=colors[j])
             j+=1
+            # plt.fill_between(df['spent_budget'],df[('added_price','mean')]+df[('added_price','std')],df[('added_price','mean')]- df[('added_price','std')],alpha=.2)
+
             plt.fill_between(df['spent_budget'],df[('bestf1dev','mean')]+df[('bestf1dev','std')],df[('bestf1dev','mean')]- df[('bestf1dev','std')],alpha=.2)
             # plt.errorbar(df['spent_budget'],df[('bestf1dev','mean')], df[('bestf1dev','std')], linestyle='None', marker='^')
         plt.xlabel('spent_budget')
@@ -142,7 +147,7 @@ if __name__ == '__main__':
             for it in lis:
                 iterations.append(it)
         iterations = pd.DataFrame(iterations)
-        iterations = iterations.groupby(['budget', 'init_budget','step_budget', 'spent_budget'],as_index=False).agg({'bestf1dev': ['mean','std'], 'bestprecisiondev': ['mean','std'], 'bestrecalldev': ['mean','std']})
+        iterations = iterations.groupby(['budget', 'init_budget','step_budget', 'spent_budget'],as_index=False).agg({'added_price': ['mean','std'], 'bestf1dev': ['mean','std'], 'bestprecisiondev': ['mean','std'], 'bestrecalldev': ['mean','std']})
         experiments = experiments.groupby(['budget','init_budget','step_budget']).agg(
             {'devf1': ['mean', 'std'], 'devprecision': ['mean', 'std'], 'devrecall': ['mean', 'std']})
         init_budget, budget, step_budget = pd.unique(iterations['init_budget']),pd.unique(iterations['budget']),pd.unique(iterations['step_budget'])
@@ -157,6 +162,7 @@ if __name__ == '__main__':
             df = iterations[iterations['init_budget']==i]
             # print(df)
             pylab.plot(df['spent_budget'], df[('bestf1dev','mean')], label=str(i), marker="o", color=colors[j])
+            # pylab.plot(df['spent_budget'], df[('added_price','mean')], label=str(i), marker="o", color=colors[j])
             j+=1
             pylab.fill_between(df['spent_budget'],df[('bestf1dev','mean')]+df[('bestf1dev','std')],df[('bestf1dev','mean')]- df[('bestf1dev','std')],alpha=.2)
             # plt.errorbar(df['spent_budget'],df[('bestf1dev','mean')], df[('bestf1dev','std')], linestyle='None', marker='^')

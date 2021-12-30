@@ -212,13 +212,13 @@ class ActiveStrategy(object):
                 price += len(texts[id])
                 if scores[id] > threshold:
                     if scores[id] == 1:
-                        perfect += 1
+                        perfect += price
                     else:
-                        not_perfect += 1
+                        not_perfect += price
                     res.append(id)
                     scores_res.append(scores[id])
                 else:
-                    thrown_away += 1
+                    thrown_away += price
         return res, scores_res, thrown_away, perfect, not_perfect, price
 
 
