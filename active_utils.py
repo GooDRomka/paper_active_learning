@@ -210,15 +210,15 @@ class ActiveStrategy(object):
         for id in tobe_selected_idxs:
             if len(texts[id]) + price < step:
                 price += len(texts[id])
-                if scores[id] > threshold:
+                if scores[id] >= threshold:
                     if scores[id] == 1:
-                        perfect += price
+                        perfect += len(texts[id])
                     else:
-                        not_perfect += price
+                        not_perfect += len(texts[id])
                     res.append(id)
                     scores_res.append(scores[id])
                 else:
-                    thrown_away += price
+                    thrown_away += len(texts[id])
         return res, scores_res, thrown_away, perfect, not_perfect, price
 
 
