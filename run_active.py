@@ -31,8 +31,8 @@ dev = load_data(dev_file, dev_vectors)
 test = load_data(test_file, test_vectors)
 
 os.makedirs("/mnt/nfs-storage/logs/active", exist_ok=True)
-number = find_new_number("/mnt/nfs-storage/logs/active")
-model_config.loginfo = "/mnt/nfs-storage/logs/active/" + number + "_loginfo.csv"
+number = find_new_number("/mnt/nfs-storage/logs/active"+str(exp_type)+"/")
+model_config.loginfo = "/mnt/nfs-storage/logs/active"+str(exp_type)+"/" + number + "_loginfo.csv"
 
 model_config.number = number
 model_config.save_model_path = "saved_models/active_model.pth"

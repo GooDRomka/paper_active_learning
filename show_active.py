@@ -73,7 +73,7 @@ def random_color():
 if __name__ == '__main__':
     model_config = ModelConfig()
     directory_report = "report/active/"
-    path_active = 'logs/active/04_loginfo.csv'
+    path_active = "logs/cluster/log_exp_1.txt"
     if not os.path.exists(directory_report):
         os.makedirs(directory_report)
     new_plot_num = find_new_number(directory_report)
@@ -88,7 +88,7 @@ if __name__ == '__main__':
 
 
     i = 0
-    scales = [0.2, 0.5, 1]
+    scales = [0.1, 0.25, 0.33, 0.4, 0.5, 1]
     pli = 1
     plt.style.use('ggplot')
 
