@@ -75,7 +75,7 @@ def random_color():
 if __name__ == '__main__':
     model_config = ModelConfig()
     directory_report = "report/active/"
-    path_active = "logs/cluster/log_exp_1.txt"
+    path_active = "logs/cluster/log_exp_4.txt"
     if not os.path.exists(directory_report):
         os.makedirs(directory_report)
     new_plot_num = find_new_number(directory_report)
