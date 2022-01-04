@@ -301,7 +301,7 @@ def active_learing_sampling(model, dataPool, model_config, args,train_m, train, 
     elif model_config.select_strategy == STRATEGY.RAND:
         tobe_selected_idxs = ActiveStrategy.random_sampling(small_unselected_embedings,
                                                             model_config.step_budget)
-    perfect, not_perfect = 0, 0
+    perfect, not_perfect, thrown_away = 0, 0, 0
     price = 0
 
     if model_config.label_strategy == STRATEGY.LAZY: #разметка проверяется оракулом, испольщуем PREDICT, а не GOLD
