@@ -166,7 +166,7 @@ elif exp_type == 5:
 
                     start_active_learning(train, dev, test, model_config)
 elif exp_type == 6:
-    # self learning rand
+    # lazy active learning rand 0.75
     params = [[STRATEGY.RAND, STRATEGY.LAZY, 800, 8000, 0.75],
           [STRATEGY.RAND, STRATEGY.LAZY, 1000, 8000,  0.75],
           [STRATEGY.RAND, STRATEGY.LAZY, 2000, 8000,  0.75],
@@ -190,6 +190,33 @@ elif exp_type == 6:
                                     'threshold', model_config.threshold,  "lr", model_config.learning_rate,"batch_size", model_config.batch_size, 'seed', model_config.seed ])
 
                     start_active_learning(train, dev, test, model_config)
+
+elif exp_type == 7:
+    # self learning rand
+    params = [[STRATEGY.RAND, STRATEGY.LAZY, 800, 8000, 0],
+          [STRATEGY.RAND, STRATEGY.LAZY, 1000, 8000,  0],
+          [STRATEGY.RAND, STRATEGY.LAZY, 2000, 8000,  0],
+          [STRATEGY.RAND, STRATEGY.LAZY, 3000, 8000,  0],
+          [STRATEGY.RAND, STRATEGY.LAZY, 2400, 8000,  0],
+          [STRATEGY.RAND, STRATEGY.LAZY, 4000, 8000,  0],
+          [STRATEGY.RAND, STRATEGY.LAZY, 1200, 8000,  0],
+          [STRATEGY.RAND, STRATEGY.LAZY, 1600, 8000,  0],
+          ]
+    for i in range(5):
+        for param in params:
+            for j in range(2):
+                seed += 1
+                if seed<process*((10*len(params))//model_config.process) and seed>=(process-1)*((10*len(params))//model_config.process):
+                    model_config.save_model_path = "saved_models/active_model"+str(process)+".pth"
+                    model_config.select_strategy, model_config.label_strategy, model_config.init_budget, model_config.budget, model_config.threshold = param
+                    model_config.seed = seed
+
+                    stat_in_file(model_config.loginfo, ["\n\n"])
+                    stat_in_file(model_config.loginfo, ['BEGIN', 'selecting_strategy', model_config.select_strategy, 'labeling_strategy', model_config.label_strategy, 'budget', model_config.budget, 'init_budget', model_config.init_budget, 'step_budget', model_config.step_budget,
+                                    'threshold', model_config.threshold,  "lr", model_config.learning_rate,"batch_size", model_config.batch_size, 'seed', model_config.seed ])
+
+                    start_active_learning(train, dev, test, model_config)
+
 
 
 print("Ya vse")

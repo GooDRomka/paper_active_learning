@@ -1,7 +1,7 @@
 import pandas as pd
 import codecs
 import os
-
+import shutil
 import csv
 import json
 import random
@@ -73,111 +73,118 @@ def random_color():
     return tuple(random.choice(levels) for _ in range(3))
 
 if __name__ == '__main__':
-    model_config = ModelConfig()
     directory_report = "report/active/"
-    path_active = "logs/cluster/log_exp_4.txt"
-    if not os.path.exists(directory_report):
-        os.makedirs(directory_report)
-    new_plot_num = find_new_number(directory_report)
+    shutil.rmtree(directory_report)
+    for num in ['1','2','3','4','5','6']:
+        model_config = ModelConfig()
 
-    path_simple = "logs/simple/paper_simple_learning.csv"
-    experiments = read_file_simple(path_simple)
-    print(experiments)
-    experiments_simple = experiments.groupby('budget', as_index=False).agg({'f1': ['mean', 'std']})
+        path_active = "logs/cluster/log_exp_" + num + ".txt"
+        if not os.path.exists(directory_report):
+            os.makedirs(directory_report)
+        new_plot_num = find_new_number(directory_report)
 
-    colors = [[0, 0.4470, 0.7410],[0, 0, 1],[0.8500, 0.3250, 0.0980],[0, 0.5, 0],[1, 0, 0],[0.4940, 0.1840, 0.5560],[0, 0.75, 0.75],
-    [0.4660, 0.6740, 0.1880],[0.75, 0, 0.75],[0.3010, 0.7450, 0.9330],[0.75, 0.75, 0],[0.6350, 0.0780, 0.1840],[0.25, 0.25, 0.25]]
+        path_simple = "logs/simple/paper_simple_learning.csv"
+        experiments = read_file_simple(path_simple)
+        # print(experiments)
+        experiments_simple = experiments.groupby('budget', as_index=False).agg({'f1': ['mean', 'std']})
 
-
-    i = 0
-    scales = [0.1, 0.25, 0.33, 0.4, 0.5, 1]
-    pli = 1
-    plt.style.use('ggplot')
+        colors = [[0, 0.4470, 0.7410],[0, 0, 1],[0.8500, 0.3250, 0.0980],[0, 0.5, 0],[1, 0, 0],[0.4940, 0.1840, 0.5560],[0, 0.75, 0.75],
+        [0.4660, 0.6740, 0.1880],[0.75, 0, 0.75],[0.3010, 0.7450, 0.9330],[0.75, 0.75, 0],[0.6350, 0.0780, 0.1840],[0.25, 0.25, 0.25]]
 
 
-    ####DRAWING SEPARATELY and in a file
-    for scale in scales:
-        experiments = read_file_active(path_active, scale)
-        iterations_c = experiments["active_iteration"]
-        iterations = []
-        for lis in iterations_c:
-            for it in lis:
-                iterations.append(it)
-        iterations = pd.DataFrame(iterations)
-
-        iterations = iterations.groupby(['budget', 'init_budget','step_budget', 'spent_budget'],as_index=False).agg({'added_price': ['mean','std'],'bestf1dev': ['mean','std'], 'bestprecisiondev': ['mean','std'], 'bestrecalldev': ['mean','std']})
-        experiments = experiments.groupby(['budget','init_budget','step_budget']).agg(
-            {'devf1': ['mean', 'std'], 'devprecision': ['mean', 'std'], 'devrecall': ['mean', 'std']})
-        init_budget, budget, step_budget = pd.unique(iterations['init_budget']),pd.unique(iterations['budget']),pd.unique(iterations['step_budget'])
-
-        plt.figure(figsize=(22,16))
-        filt = max(budget)*scale+max(init_budget)+1000
-
-        experiments_simple_filt = experiments_simple[experiments_simple['budget']<=filt]
-
-        plt.plot(experiments_simple_filt['budget'], experiments_simple_filt[('f1','mean')],label="simple", marker="o", color="black")
-        plt.fill_between(experiments_simple_filt['budget'],experiments_simple_filt[('f1','mean')]+experiments_simple_filt[('f1','std')],experiments_simple_filt[('f1','mean')]- experiments_simple_filt[('f1','std')],alpha=.2)
-        j=0
-        for i in init_budget:
-            df = iterations[iterations['init_budget']==i]
-            # print(df)
-            plt.plot(df['spent_budget'],df[('bestf1dev','mean')], label=str(i), marker="o", color=colors[j])
-            # plt.plot(df['spent_budget'], df[('added_price', 'mean')], label=str(i), marker="o", color=colors[j])
-            j+=1
-            # plt.fill_between(df['spent_budget'],df[('added_price','mean')]+df[('added_price','std')],df[('added_price','mean')]- df[('added_price','std')],alpha=.2)
-
-            plt.fill_between(df['spent_budget'],df[('bestf1dev','mean')]+df[('bestf1dev','std')],df[('bestf1dev','mean')]- df[('bestf1dev','std')],alpha=.2)
-            # plt.errorbar(df['spent_budget'],df[('bestf1dev','mean')], df[('bestf1dev','std')], linestyle='None', marker='^')
-        plt.xlabel('spent_budget')
-        plt.ylabel('bestf1dev')
-        plt.legend(loc='best')
-        plt.title("active learning with scale = "+str(scale))
-        # plt.show()
-        plt.savefig(directory_report+new_plot_num+"_active "+ str(scale)+'.png')
+        i = 0
+        scales = [0.1, 0.25, 0.33, 0.4, 0.5, 1]
+        pli = 1
+        plt.style.use('ggplot')
 
 
-    ####DRAWING on a one picture
+        ####DRAWING SEPARATELY and in a file
+        for scale in scales:
+            experiments = read_file_active(path_active, scale)
+            iterations_c = experiments["active_iteration"]
+            iterations = []
+            for lis in iterations_c:
+                for it in lis:
+                    iterations.append(it)
+            iterations = pd.DataFrame(iterations)
 
-    for scale in scales:
-        pylab.subplot(3, 2, pli)
-        experiments = read_file_active(path_active,scale)
-        iterations_c = experiments["active_iteration"]
-        iterations = []
-        for lis in iterations_c:
-            for it in lis:
-                iterations.append(it)
-        iterations = pd.DataFrame(iterations)
-        iterations = iterations.groupby(['budget', 'init_budget','step_budget', 'spent_budget'],as_index=False).agg({'added_price': ['mean','std'], 'bestf1dev': ['mean','std'], 'bestprecisiondev': ['mean','std'], 'bestrecalldev': ['mean','std']})
-        experiments = experiments.groupby(['budget','init_budget','step_budget']).agg(
-            {'devf1': ['mean', 'std'], 'devprecision': ['mean', 'std'], 'devrecall': ['mean', 'std']})
-        init_budget, budget, step_budget = pd.unique(iterations['init_budget']),pd.unique(iterations['budget']),pd.unique(iterations['step_budget'])
+            iterations = iterations.groupby(['budget', 'init_budget','step_budget', 'spent_budget'],as_index=False).agg({'added_price': ['mean','std'],'bestf1dev': ['mean','std'], 'bestprecisiondev': ['mean','std'], 'bestrecalldev': ['mean','std']})
+            experiments = experiments.groupby(['budget','init_budget','step_budget']).agg(
+                {'devf1': ['mean', 'std'], 'devprecision': ['mean', 'std'], 'devrecall': ['mean', 'std']})
+            init_budget, budget, step_budget = pd.unique(iterations['init_budget']),pd.unique(iterations['budget']),pd.unique(iterations['step_budget'])
 
-        filt = max(budget)*scale+max(init_budget)+1000
+            plt.figure(figsize=(22,16))
+            filt = max(budget)*scale+max(init_budget)+1000
 
-        experiments_simple_filt = experiments_simple[experiments_simple['budget']<=filt]
-        plt.plot(experiments_simple_filt['budget'], experiments_simple_filt[('f1','mean')],label="simple", marker="o", color="black")
-        plt.fill_between(experiments_simple_filt['budget'],experiments_simple_filt[('f1','mean')]+experiments_simple_filt[('f1','std')],experiments_simple_filt[('f1','mean')]- experiments_simple_filt[('f1','std')],alpha=.2)
-        j = 0
-        for i in init_budget:
-            df = iterations[iterations['init_budget']==i]
-            # print(df)
-            pylab.plot(df['spent_budget'], df[('bestf1dev','mean')], label=str(i), marker="o", color=colors[j])
-            # pylab.plot(df['spent_budget'], df[('added_price','mean')], label=str(i), marker="o", color=colors[j])
-            j+=1
-            pylab.fill_between(df['spent_budget'],df[('bestf1dev','mean')]+df[('bestf1dev','std')],df[('bestf1dev','mean')]- df[('bestf1dev','std')],alpha=.2)
-            # plt.errorbar(df['spent_budget'],df[('bestf1dev','mean')], df[('bestf1dev','std')], linestyle='None', marker='^')
+            experiments_simple_filt = experiments_simple[experiments_simple['budget']<=filt]
 
-        pylab.xlabel('spent_budget')
-        pylab.ylabel('bestf1dev')
-        pylab.legend(loc='best')
-        pylab.title("active learning with scale = "+str(scale))
-        # plt.show()
-        # pylab.savefig("report/active "+ str(scale)+'.png')
-        pli+=1
-    pylab.savefig(directory_report+new_plot_num+"_active_all.png")
+            plt.plot(experiments_simple_filt['budget'], experiments_simple_filt[('f1','mean')],label="simple", marker="o", color="black")
+            plt.fill_between(experiments_simple_filt['budget'],experiments_simple_filt[('f1','mean')]+experiments_simple_filt[('f1','std')],experiments_simple_filt[('f1','mean')]- experiments_simple_filt[('f1','std')],alpha=.2)
+            j=0
+            for i in init_budget:
+                df = iterations[iterations['init_budget']==i]
+                # print(df)
+                plt.plot(df['spent_budget'],df[('bestf1dev','mean')], label=str(i), marker="o", color=colors[j])
+                # plt.plot(df['spent_budget'], df[('added_price', 'mean')], label=str(i), marker="o", color=colors[j])
+                j+=1
+                # plt.fill_between(df['spent_budget'],df[('added_price','mean')]+df[('added_price','std')],df[('added_price','mean')]- df[('added_price','std')],alpha=.2)
+
+                plt.fill_between(df['spent_budget'],df[('bestf1dev','mean')]+df[('bestf1dev','std')],df[('bestf1dev','mean')]- df[('bestf1dev','std')],alpha=.2)
+                # plt.errorbar(df['spent_budget'],df[('bestf1dev','mean')], df[('bestf1dev','std')], linestyle='None', marker='^')
+            plt.xlabel('spent_budget')
+            plt.ylabel('bestf1dev')
+            plt.legend(loc='best')
+            plt.title("active learning with scale = "+str(scale))
+            # plt.show()
+            plt.savefig(directory_report+new_plot_num+"_active "+ str(scale)+'.png')
 
 
-    print(experiments)
+        ####DRAWING on a one picture
+
+        for scale in scales:
+            pylab.subplot(3, 2, pli)
+            experiments = read_file_active(path_active,scale)
+            iterations_c = experiments["active_iteration"]
+            iterations = []
+            for lis in iterations_c:
+                for it in lis:
+                    iterations.append(it)
+            iterations = pd.DataFrame(iterations)
+            iterations = iterations.groupby(['budget', 'init_budget','step_budget', 'spent_budget'],as_index=False).agg({'added_price': ['mean','std'], 'bestf1dev': ['mean','std'], 'bestprecisiondev': ['mean','std'], 'bestrecalldev': ['mean','std']})
+            experiments = experiments.groupby(['budget','init_budget','step_budget']).agg(
+                {'devf1': ['mean', 'std'], 'devprecision': ['mean', 'std'], 'devrecall': ['mean', 'std']})
+            init_budget, budget, step_budget = pd.unique(iterations['init_budget']),pd.unique(iterations['budget']),pd.unique(iterations['step_budget'])
+
+            filt = max(budget)*scale+max(init_budget)+1000
+
+            experiments_simple_filt = experiments_simple[experiments_simple['budget']<=filt]
+            plt.plot(experiments_simple_filt['budget'], experiments_simple_filt[('f1','mean')],label="simple", marker="o", color="black")
+            plt.fill_between(experiments_simple_filt['budget'],experiments_simple_filt[('f1','mean')]+experiments_simple_filt[('f1','std')],experiments_simple_filt[('f1','mean')]- experiments_simple_filt[('f1','std')],alpha=.2)
+            j = 0
+            for i in init_budget:
+                df = iterations[iterations['init_budget']==i]
+                # print(df)
+                pylab.plot(df['spent_budget'], df[('bestf1dev','mean')], label=str(i), marker="o", color=colors[j])
+                # pylab.plot(df['spent_budget'], df[('added_price','mean')], label=str(i), marker="o", color=colors[j])
+                j+=1
+                pylab.fill_between(df['spent_budget'],df[('bestf1dev','mean')]+df[('bestf1dev','std')],df[('bestf1dev','mean')]- df[('bestf1dev','std')],alpha=.2)
+                # plt.errorbar(df['spent_budget'],df[('bestf1dev','mean')], df[('bestf1dev','std')], linestyle='None', marker='^')
+
+            pylab.xlabel('spent_budget')
+            pylab.ylabel('bestf1dev')
+            pylab.legend(loc='best')
+            pylab.title("active learning with scale = "+str(scale))
+            # plt.show()
+            # pylab.savefig("report/active "+ str(scale)+'.png')
+            pli+=1
+        Title = {"1":"lazy active learning, LC, threshold 0.5","2":"self learning,LC, threshold 0","3":"active learning, LC",
+                 "4":"lazy active learning, LC, threshold 0.25","5":"lazy active learning, LC, threshold 0.75","6":"lazy active learning,RAND, threshold 0.75",
+                 "7":"self learning, RAND, threshold 0"}
+        pylab.suptitle(Title[num])
+        pylab.savefig(directory_report+new_plot_num+"_active_all.png")
+
+
+        # print(experiments)
 
 
 
