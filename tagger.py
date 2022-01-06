@@ -39,7 +39,7 @@ class Network:
         with self.session.graph.as_default():
 
             # Inputs
-            self.sentence_lens =  tf.compat.v1.placeholder(tf.int32, [None], name="sentence_lens")
+            self.sentence_lens =  tf.placeholder(tf.int32, [None], name="sentence_lens")
             self.form_ids = tf.placeholder(tf.int32, [None, None], name="form_ids")
             self.lemma_ids = tf.placeholder(tf.int32, [None, None], name="lemma_ids")
             self.pos_ids = tf.placeholder(tf.int32, [None, None], name="pos_ids")
@@ -73,7 +73,7 @@ class Network:
             inputs = []
 
             # Trainable embeddings for forms
-            form_embeddings =  tf.compat.v1.get_variable("form_embeddings", shape=[num_forms, args.we_dim], dtype=tf.float32)
+            form_embeddings =  tf.get_variable("form_embeddings", shape=[num_forms, args.we_dim], dtype=tf.float32)
             inputs.append(tf.nn.embedding_lookup(form_embeddings, self.form_ids))
 
             # Trainable embeddings for lemmas
@@ -298,17 +298,17 @@ class Network:
                         DecoderPrediction(), maximum_iterations=3*tf.reduce_max(self.sentence_lens) + 10)
 
             # Saver
-            self.saver = tf.compat.v1.train.Saver(max_to_keep=1)
+            self.saver = tf.train.Saver(max_to_keep=1)
             if predict_only: return
 
             # Training
-            global_step = tf.compat.v1.train.create_global_step()
+            global_step = tf.train.create_global_step()
             self.training = tf.contrib.opt.LazyAdamOptimizer(learning_rate=self.learning_rate, beta2=args.beta_2).minimize(loss, global_step=global_step)
 
             # Summaries
-            self.current_accuracy, self.update_accuracy = tf.compat.v1.metrics.accuracy(self.tags, self.predictions_training, weights=weights)
-            self.current_loss, self.update_loss = tf.compat.v1.metrics.mean(loss, weights=tf.reduce_sum(weights))
-            self.reset_metrics =  tf.compat.v1.variables_initializer(tf.compat.v1.get_collection(tf.compat.v1.GraphKeys.METRIC_VARIABLES))
+            self.current_accuracy, self.update_accuracy = tf.metrics.accuracy(self.tags, self.predictions_training, weights=weights)
+            self.current_loss, self.update_loss = tf.metrics.mean(loss, weights=tf.reduce_sum(weights))
+            self.reset_metrics =  tf.variables_initializer(tf.get_collection(tf.GraphKeys.METRIC_VARIABLES))
 
             summary_writer = tf.contrib.summary.create_file_writer(args.logdir, flush_millis=10 * 1000)
             self.summaries = {}
@@ -331,7 +331,7 @@ class Network:
                                                                                             self.metrics[metric])
 
             # Initialize variables
-            self.session.run(tf.compat.v1.global_variables_initializer())
+            self.session.run(tf.global_variables_initializer())
             with summary_writer.as_default():
                 tf.contrib.summary.initialize(session=self.session, graph=self.session.graph)
 
@@ -640,7 +640,7 @@ if __name__ == "__main__":
         network.saver.restore(network.session, "{}/model".format(args.logdir))
 
         test_score = network.evaluate("test", test, args)
-        print("testf1 {}".format(test_score))
+        print("devf1 {}".format(test_score))
         stat_in_file(args.logpath,
-                            ["result", "testf1", test_score])
+                            ["result", "devf1", test_score])
         shutil.rmtree(args.logdir)
