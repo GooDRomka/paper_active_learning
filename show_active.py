@@ -75,7 +75,7 @@ def random_color():
 if __name__ == '__main__':
     directory_report = "report/active/"
     shutil.rmtree(directory_report)
-    for num in ['1','2','3','4','5','6']:
+    for num in ['1','2','3','4','5','6', '7']:
         model_config = ModelConfig()
 
         path_active = "logs/cluster/log_exp_" + num + ".txt"
@@ -83,7 +83,7 @@ if __name__ == '__main__':
             os.makedirs(directory_report)
         new_plot_num = find_new_number(directory_report)
 
-        path_simple = "logs/simple/paper_simple_learning.csv"
+        path_simple = "logs/simple/paper_simple_learning_dev.csv"
         experiments = read_file_simple(path_simple)
         # print(experiments)
         experiments_simple = experiments.groupby('budget', as_index=False).agg({'f1': ['mean', 'std']})

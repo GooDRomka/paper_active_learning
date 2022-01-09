@@ -83,7 +83,7 @@ if __name__ == '__main__':
         os.makedirs(directory_report)
     new_plot_num = find_new_number(directory_report)
 
-    path_simple = "logs/simple/paper_simple_learning.csv"
+    path_simple = "logs/simple/paper_simple_learning_dev.csv"
     mode = 'simple'
 
     experiments = read_file_simple(path_simple)
