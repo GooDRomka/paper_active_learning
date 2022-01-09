@@ -17,6 +17,7 @@ dev = load_data(dev_file, dev_vectors)
 test = load_data(test_file, test_vectors)
 
 params = [300, 500, 800, 1000, 1100, 1300, 1500, 1750, 2000, 3000, 4000, 6000, 8000, 10000, 12000, 15000, 20000, 25000, 30000, 40000]
+params = [400, 600, 700, 900, 1200, 1400, 1600, 1700, 1800, 1900, 2500, 3500, 4500, 5000, 5500, 6500, 7000, 7500, 8500, 9000, 9500]
 # params = [400000]
 number = find_new_number("logs/simple")
 model_config.loginfo = "logs/simple/" + number + "_loginfo.csv"
