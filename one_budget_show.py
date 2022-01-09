@@ -80,7 +80,7 @@ if __name__ == '__main__':
          "7":"self,RAND,0"}
     scale = 1
     i = 2000
-
+    added_price_i = True
 
     for scale in [1,0.5,0.4,0.2,0.1]:
         for i in [1000,2000,3000,2400,4000,1200,1600,800]:
@@ -127,10 +127,10 @@ if __name__ == '__main__':
                 df = iterations[iterations['init_budget']==i]
                 # print(df)
                 plt.plot(df['spent_budget'],df[('bestf1dev','mean')], label=Title[num], marker="o", color=colors[j])
-                # plt.plot(df['spent_budget'], df[('added_price', 'mean')], label=str(i), marker="o", color=colors[j])
+                if added_price_i:
+                    plt.plot(df['spent_budget'], df[('added_price', 'mean')], label=Title[num], marker="o", color=colors[j])
+                    plt.fill_between(df['spent_budget'],df[('added_price','mean')]+df[('added_price','std')],df[('added_price','mean')]- df[('added_price','std')],alpha=.2)
                 j+=1
-                # plt.fill_between(df['spent_budget'],df[('added_price','mean')]+df[('added_price','std')],df[('added_price','mean')]- df[('added_price','std')],alpha=.2)
-
                 plt.fill_between(df['spent_budget'],df[('bestf1dev','mean')]+df[('bestf1dev','std')],df[('bestf1dev','mean')]- df[('bestf1dev','std')],alpha=.2)
                 # plt.errorbar(df['spent_budget'],df[('bestf1dev','mean')], df[('bestf1dev','std')], linestyle='None', marker='^')
 
