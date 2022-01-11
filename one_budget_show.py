@@ -47,6 +47,7 @@ def read_file_active(path, scale):
                 stat['active_iteration'].append({"bestf1dev": float(line[21]), "bestprecisiondev": float(line[17]), "bestrecalldev": float(line[19]),"added_price": added_price,"budget": budget, "init_budget": init_budget, "step_budget":step_budget ,"spent_budget":spent_budget})
 
             if line[0] == "result":
+                stat['active_iteration'] = stat['active_iteration'][:-2]
                 stat.update({"f1test": float(line[12]), "precisiontest": float(line[8]), "recalltest": float(line[10]), "cost_of_train": fullcost,
                              "devf1": float(line[18]), "devprecision": float(line[14]), "devrecall": float(line[16]), "spentprice": spentprice})
                 experiments.append(stat)
@@ -81,7 +82,7 @@ if __name__ == '__main__':
     scale = 1
     i = 2000
     # added_price_i = False
-    for added_price_i in [False,True]:
+    for added_price_i in [True, False]:
         for scale in [1,0.5,0.4,0.2,0.1]:
             for i in [1000,2000,3000,2400,4000,1200,1600,800]:
                 plt.style.use('ggplot')
@@ -115,7 +116,7 @@ if __name__ == '__main__':
                         {'devf1': ['mean', 'std'], 'devprecision': ['mean', 'std'], 'devrecall': ['mean', 'std']})
                     init_budget, budget, step_budget = pd.unique(iterations['init_budget']),pd.unique(iterations['budget']),pd.unique(iterations['step_budget'])
 
-                    if j==0:
+                    if j==0 and not added_price_i:
                         filt = max(budget)*scale+max(init_budget)+1000
 
                         experiments_simple_filt = experiments_simple[experiments_simple['budget']<=filt]
@@ -125,13 +126,16 @@ if __name__ == '__main__':
 
 
                     df = iterations[iterations['init_budget']==i]
+
                     # print(df)
-                    plt.plot(df['spent_budget'],df[('bestf1dev','mean')], label=Title[num], marker="o", color=colors[j])
                     if added_price_i:
                         plt.plot(df['spent_budget'], df[('added_price', 'mean')], label=Title[num], marker="o", color=colors[j])
                         plt.fill_between(df['spent_budget'],df[('added_price','mean')]+df[('added_price','std')],df[('added_price','mean')]- df[('added_price','std')],alpha=.2)
+                    else:
+                        plt.plot(df['spent_budget'],df[('bestf1dev','mean')], label=Title[num], marker="o", color=colors[j])
+                        plt.fill_between(df['spent_budget'],df[('bestf1dev','mean')]+df[('bestf1dev','std')],df[('bestf1dev','mean')]- df[('bestf1dev','std')],alpha=.2)
                     j+=1
-                    plt.fill_between(df['spent_budget'],df[('bestf1dev','mean')]+df[('bestf1dev','std')],df[('bestf1dev','mean')]- df[('bestf1dev','std')],alpha=.2)
+
                     # plt.errorbar(df['spent_budget'],df[('bestf1dev','mean')], df[('bestf1dev','std')], linestyle='None', marker='^')
 
 

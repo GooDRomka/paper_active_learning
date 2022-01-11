@@ -93,7 +93,7 @@ if __name__ == '__main__':
 
 
         i = 0
-        scales = [0.1, 0.25, 0.33, 0.4, 0.5, 1]
+        scales = [0.1, 0.125, 0.2, 0.25, 0.33, 0.4, 0.5, 1]
         pli = 1
         plt.style.use('ggplot')
 
@@ -142,7 +142,7 @@ if __name__ == '__main__':
         ####DRAWING on a one picture
 
         for scale in scales:
-            pylab.subplot(3, 2, pli)
+            pylab.subplot(4, 2, pli)
             experiments = read_file_active(path_active,scale)
             iterations_c = experiments["active_iteration"]
             iterations = []

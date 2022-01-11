@@ -24,7 +24,7 @@ class ModelConfig(object):
         self.dropout = 0.5
         self.number = 0
         self.process = 1
-
+        self.oracle_metric = STRATEGY.NORMAL
 
         # self.lstm_size = 256
         # self.lstm_layer = 1

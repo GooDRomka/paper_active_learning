@@ -310,7 +310,7 @@ def active_learing_sampling(model, dataPool, model_config, args,train_m, train, 
         changed, not_changed = dataPool.update_labels(tobe_selected_idxs, small_unselected_ids, predicted_labels, model_config)
         tobe_selected_idxs = np.array(small_unselected_ids)[tobe_selected_idxs]
 
-    else: #оракул размечает используем GOLD разметку
+    elif model_config.label_strategy == STRATEGY.NORMAL: #оракул размечает используем GOLD разметку
         tobe_selected_idxs_copy = tobe_selected_idxs.copy()
         tobe_selected_idxs = []
         for id in tobe_selected_idxs_copy:
@@ -321,7 +321,6 @@ def active_learing_sampling(model, dataPool, model_config, args,train_m, train, 
             else:
                 tobe_selected_idxs.append(id)
                 price += cost
-
         tobe_selected_idxs = np.array(small_unselected_ids)[tobe_selected_idxs]
 
     sum_prices += price
