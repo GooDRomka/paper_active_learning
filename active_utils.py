@@ -124,7 +124,8 @@ class ActiveStrategy(object):
     def self_sampling(cls, model_config, viterbi_scores, texts):
         tobe_selected_idxs = []
         tobe_selected_scores = []
-        for score,id in zip(viterbi_scores,range(len(texts))):
+        idxs = list(range(len(texts)))
+        for score,id in zip(viterbi_scores,idxs):
             log_score = np.mean(np.array(score))
             print("score", log_score, score)
             if log_score>=model_config.self_threshold:
