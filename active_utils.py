@@ -302,6 +302,8 @@ def create_temp_dataset(model_config, train_m,  texts, embedings, labels ):
 def active_learing_sampling(model, dataPool, model_config, args,train_m, train, sum_prices, iterations_of_learning):
     unselected_ids = dataPool.get_unselected_id()
     small_unselected_ids, small_unselected_texts, small_unselected_labels = dataPool.get_unselected_small(model_config.step_budget)
+    print(len(unselected_ids), len(small_unselected_ids), max(small_unselected_ids))
+    exit()
     small_unselected_embedings, _ = get_embeding( np.array(unselected_ids)[small_unselected_ids], small_unselected_labels,
                                                             train['embed'])
     tobe_selected_idxs  = None
@@ -315,6 +317,7 @@ def active_learing_sampling(model, dataPool, model_config, args,train_m, train, 
     elif model_config.select_strategy == STRATEGY.RAND:
         tobe_selected_idxs = ActiveStrategy.random_sampling(small_unselected_embedings,
                                                             model_config.step_budget)
+
     elif model_config.select_strategy == STRATEGY.SELF:
         dataset = create_temp_dataset(model_config, train_m, small_unselected_texts, small_unselected_embedings, small_unselected_labels)
         tags, scores = model.get_tags(dataset, args)
