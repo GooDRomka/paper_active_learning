@@ -251,14 +251,14 @@ elif exp_type == 8:
 
 elif exp_type == 9:
     # self learning rand
-    params = [[STRATEGY.SELF, STRATEGY.LAZY, 800, 8000, 0, 12],
-          [STRATEGY.SELF, STRATEGY.LAZY, 1000, 8000,  0, 12],
-          [STRATEGY.SELF, STRATEGY.LAZY, 2000, 8000,  0, 12],
-          [STRATEGY.SELF, STRATEGY.LAZY, 3000, 8000,  0, 12],
-          [STRATEGY.SELF, STRATEGY.LAZY, 2400, 8000,  0, 12],
-          [STRATEGY.SELF, STRATEGY.LAZY, 4000, 8000,  0, 12],
-          [STRATEGY.SELF, STRATEGY.LAZY, 1200, 8000,  0, 12],
-          [STRATEGY.SELF, STRATEGY.LAZY, 1600, 8000,  0, 12],
+    params = [[STRATEGY.SELF, STRATEGY.LAZY, 800, 8000, 0, 13.5],
+          [STRATEGY.SELF, STRATEGY.LAZY, 1000, 8000,  0, 13.5],
+          [STRATEGY.SELF, STRATEGY.LAZY, 2000, 8000,  0, 13.5],
+          [STRATEGY.SELF, STRATEGY.LAZY, 3000, 8000,  0, 13.5],
+          [STRATEGY.SELF, STRATEGY.LAZY, 2400, 8000,  0, 13.5],
+          [STRATEGY.SELF, STRATEGY.LAZY, 4000, 8000,  0, 13.5],
+          [STRATEGY.SELF, STRATEGY.LAZY, 1200, 8000,  0, 13.5],
+          [STRATEGY.SELF, STRATEGY.LAZY, 1600, 8000,  0, 13.5],
           ]
     for i in range(5):
         for param in params:
@@ -270,6 +270,7 @@ elif exp_type == 9:
                     model_config.seed = seed
                     if model_config.select_strategy==STRATEGY.SELF:
                         model_config.step_budget=20000000
+                        model_config.budget=20000000
                     stat_in_file(model_config.loginfo, ["\n\n"])
                     stat_in_file(model_config.loginfo, ['BEGIN', 'selecting_strategy', model_config.select_strategy, 'labeling_strategy', model_config.label_strategy, 'budget', model_config.budget, 'init_budget', model_config.init_budget, 'step_budget', model_config.step_budget,
                                     'threshold', model_config.threshold,  "lr", model_config.learning_rate,"batch_size", model_config.batch_size, 'seed', model_config.seed ])

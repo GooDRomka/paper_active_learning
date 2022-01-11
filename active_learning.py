@@ -49,7 +49,8 @@ def start_active_learning(train, dev, test, model_config):
         dataPool, price, perfect, not_perfect, sum_prices = active_learing_sampling(network, dataPool, model_config, args, train_m, train, sum_prices, iterations_of_learning)
         selected_texts, selected_labels = dataPool.get_selected()
         selected_ids = dataPool.get_selected_id()
-
+        if model_config.select_strategy==STRATEGY.SELF and price == 0:
+            end_marker = True
         embedings, labels = get_embeding(selected_ids, selected_labels, train['embed'])
         X_train, X_dev, y_train, y_dev = train_test_split(list(range(len(labels))), list(range(len(labels))),
                                                           test_size=0.2, random_state=42)
