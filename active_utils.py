@@ -127,7 +127,6 @@ class ActiveStrategy(object):
         idxs = list(range(len(texts)))
         for score,id in zip(viterbi_scores,idxs):
             log_score = score / len(texts[id])
-            print("score", log_score, score)
             if log_score>=model_config.self_threshold:
                 tobe_selected_idxs.append(id)
                 tobe_selected_scores.append(log_score)
@@ -381,3 +380,9 @@ def clear_old_model(path):
         os.remove(path)
     except Exception:
         pass
+
+def softmax(x):
+
+    y = np.exp(x - np.max(x))
+    f_x = y / np.sum(np.exp(x))
+    return f_x

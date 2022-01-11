@@ -251,14 +251,14 @@ elif exp_type == 8:
 
 elif exp_type == 9:
     # self learning rand
-    params = [[STRATEGY.SELF, STRATEGY.LAZY, 800, 8000, 0],
-          [STRATEGY.SELF, STRATEGY.LAZY, 1000, 8000,  0],
-          [STRATEGY.SELF, STRATEGY.LAZY, 2000, 8000,  0],
-          [STRATEGY.SELF, STRATEGY.LAZY, 3000, 8000,  0],
-          [STRATEGY.SELF, STRATEGY.LAZY, 2400, 8000,  0],
-          [STRATEGY.SELF, STRATEGY.LAZY, 4000, 8000,  0],
-          [STRATEGY.SELF, STRATEGY.LAZY, 1200, 8000,  0],
-          [STRATEGY.SELF, STRATEGY.LAZY, 1600, 8000,  0],
+    params = [[STRATEGY.SELF, STRATEGY.LAZY, 800, 8000, 0, 12],
+          [STRATEGY.SELF, STRATEGY.LAZY, 1000, 8000,  0, 12],
+          [STRATEGY.SELF, STRATEGY.LAZY, 2000, 8000,  0, 12],
+          [STRATEGY.SELF, STRATEGY.LAZY, 3000, 8000,  0, 12],
+          [STRATEGY.SELF, STRATEGY.LAZY, 2400, 8000,  0, 12],
+          [STRATEGY.SELF, STRATEGY.LAZY, 4000, 8000,  0, 12],
+          [STRATEGY.SELF, STRATEGY.LAZY, 1200, 8000,  0, 12],
+          [STRATEGY.SELF, STRATEGY.LAZY, 1600, 8000,  0, 12],
           ]
     for i in range(5):
         for param in params:
@@ -266,7 +266,7 @@ elif exp_type == 9:
                 seed += 1
                 if seed<process*((10*len(params))//model_config.process) and seed>=(process-1)*((10*len(params))//model_config.process):
                     model_config.save_model_path = "saved_models/active_model"+str(process)+".pth"
-                    model_config.select_strategy, model_config.label_strategy, model_config.init_budget, model_config.budget, model_config.threshold = param
+                    model_config.select_strategy, model_config.label_strategy, model_config.init_budget, model_config.budget, model_config.threshold, model_config.self_threshold = param
                     model_config.seed = seed
                     if model_config.select_strategy==STRATEGY.SELF:
                         model_config.step_budget=20000000
