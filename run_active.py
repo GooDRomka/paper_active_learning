@@ -251,10 +251,10 @@ elif exp_type == 8:
 
 elif exp_type == 9:
     # self learning rand
-    params = [[STRATEGY.SELF, STRATEGY.LAZY, 3000, 8000, 0, 17.1],
+    params = [[STRATEGY.SELF, STRATEGY.LAZY, 800, 8000, 0, 17.1],
           [STRATEGY.SELF, STRATEGY.LAZY, 1000, 8000,  0, 17.1],
           [STRATEGY.SELF, STRATEGY.LAZY, 2000, 8000,  0, 17.1],
-          [STRATEGY.SELF, STRATEGY.LAZY, 800, 8000,  0, 17.1],
+          [STRATEGY.SELF, STRATEGY.LAZY, 3000, 8000,  0, 17.1],
           [STRATEGY.SELF, STRATEGY.LAZY, 2400, 8000,  0, 17.1],
           [STRATEGY.SELF, STRATEGY.LAZY, 4000, 8000,  0, 17.1],
           [STRATEGY.SELF, STRATEGY.LAZY, 1200, 8000,  0, 17.1],
