@@ -25,7 +25,7 @@ class ModelConfig(object):
         self.number = 0
         self.process = 1
         self.oracle_metric = STRATEGY.NORMAL
-
+        self.self_threshold = 0.9
         # self.lstm_size = 256
         # self.lstm_layer = 1
         # self.vocab_size = 30000

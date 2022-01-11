@@ -121,6 +121,19 @@ class ActiveStrategy(object):
         return random.sample(idxs, num)
 
     @classmethod
+    def self_sampling(cls, model_config, viterbi_scores, texts):
+        tobe_selected_idxs = []
+        tobe_selected_scores = []
+        for score,id in zip(viterbi_scores,range(len(texts))):
+            log_score = np.mean(np.array(score))
+            print("score", log_score, score)
+            if log_score>=model_config.self_threshold:
+                tobe_selected_idxs.append(id)
+                tobe_selected_scores.append(log_score)
+
+        return tobe_selected_idxs, tobe_selected_scores
+
+    @classmethod
     def lc_sampling(cls, viterbi_scores, texts, select_num):
         """
         Least Confidence
@@ -301,6 +314,11 @@ def active_learing_sampling(model, dataPool, model_config, args,train_m, train, 
     elif model_config.select_strategy == STRATEGY.RAND:
         tobe_selected_idxs = ActiveStrategy.random_sampling(small_unselected_embedings,
                                                             model_config.step_budget)
+    elif model_config.select_strategy == STRATEGY.SELF:
+        dataset = create_temp_dataset(model_config, train_m, small_unselected_texts, small_unselected_embedings, small_unselected_labels)
+        tags, scores = model.get_tags(dataset, args)
+        tobe_selected_idxs, tobe_selected_scores = ActiveStrategy.self_sampling(model_config, scores, small_unselected_embedings)
+
     perfect, not_perfect, thrown_away = 0, 0, 0
     price = 0
 
