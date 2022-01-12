@@ -223,6 +223,7 @@ class Network:
                 self.viterbi_score = tf.contrib.crf.crf_unary_score(
                     self.predictions, self.sentence_lens, output_layer)
 
+                self.unary_score = self.viterbi_score
                 self.predictions_training = self.predictions
 
 
@@ -351,7 +352,7 @@ class Network:
             seq2seq = args.decoding == "seq2seq"
             batch_dict = dataset.next_batch(args.batch_size, args.form_wes_model, args.lemma_wes_model, args.fasttext_model, args.including_charseqs, seq2seq=seq2seq)
             targets = [self.predictions]
-            scores = [self.viterbi_score]
+            scores = [self.unary_score]
             train = morpho_dataset.MorphoDataset(args.train_data, max_sentences=args.max_sentences,
                                                  bert_embeddings_filename=args.bert_embeddings_train)
 
