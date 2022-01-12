@@ -217,10 +217,12 @@ class Network:
                 log_likelihood, transition_params = tf.contrib.crf.crf_log_likelihood(
                     output_layer, self.tags, self.sentence_lens)
                 loss = tf.reduce_mean(-log_likelihood)
-                self.predictions, self.viterbi_score = tf.contrib.crf.crf_decode(
+                self.predictions, _ = tf.contrib.crf.crf_decode(
                     output_layer, transition_params, self.sentence_lens)
 
-
+                seq_score, _ = tf.contrib.crf.crf_log_likelihood(
+                    output_layer, self.predictions, self.sentence_lens, transition_params)
+                self.viterbi_score = seq_score/tf.cast( self.sentence_lens, tf.float32)
                 self.predictions_training = self.predictions
 
 
@@ -348,7 +350,8 @@ class Network:
             seq2seq = args.decoding == "seq2seq"
             batch_dict = dataset.next_batch(args.batch_size, args.form_wes_model, args.lemma_wes_model, args.fasttext_model, args.including_charseqs, seq2seq=seq2seq)
             targets = [self.predictions]
-            scores = [self.viterbi_score]
+            scores = np.array(self.viterbi_score)
+            scores = np.exp(scores)
             train = morpho_dataset.MorphoDataset(args.train_data, max_sentences=args.max_sentences,
                                                  bert_embeddings_filename=args.bert_embeddings_train)
 
