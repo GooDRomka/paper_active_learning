@@ -350,8 +350,8 @@ class Network:
             seq2seq = args.decoding == "seq2seq"
             batch_dict = dataset.next_batch(args.batch_size, args.form_wes_model, args.lemma_wes_model, args.fasttext_model, args.including_charseqs, seq2seq=seq2seq)
             targets = [self.predictions]
-            scores = np.array(self.viterbi_score)
-            scores = np.exp(scores)
+            scores = [self.viterbi_score]
+
             train = morpho_dataset.MorphoDataset(args.train_data, max_sentences=args.max_sentences,
                                                  bert_embeddings_filename=args.bert_embeddings_train)
 
@@ -398,7 +398,7 @@ class Network:
             for i in range(len(forms[s])):
                 sent.append(dataset.factors[dataset.TAGS].words[tags[s][i]])
             tags_res.append(sent)
-            scores_res.append(scors[s])
+            scores_res.append(np.exp(scors[s]))
         return tags_res, scores_res
 
     def f1_score_span(self, labels, tags=None, isList=True):
