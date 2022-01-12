@@ -217,7 +217,7 @@ class Network:
                 log_likelihood, transition_params = tf.contrib.crf.crf_log_likelihood(
                     output_layer, self.tags, self.sentence_lens)
                 loss = tf.reduce_mean(-log_likelihood)
-                self.predictions, _ = tf.contrib.crf.crf_decode(
+                self.predictions, _ = tf.contrib.crf.crf_binary_score(
                     output_layer, transition_params, self.sentence_lens)
 
                 self.viterbi_score = tf.contrib.crf.crf_unary_score(
@@ -227,7 +227,6 @@ class Network:
                 self.predictions_training = self.predictions
 
 
-            # print("vs", self.viterbi_score)
             # Saver
             self.saver = tf.train.Saver(max_to_keep=1)
             if predict_only: return
