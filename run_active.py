@@ -252,10 +252,10 @@ elif exp_type == 8:
 elif exp_type == 9:
     # self learning rand
     params = [
-          [STRATEGY.SELF, STRATEGY.LAZY, 2000, 8000,  0, 0.9975],
-          [STRATEGY.SELF, STRATEGY.LAZY, 2400, 8000,  0, 0.9975],
-          [STRATEGY.SELF, STRATEGY.LAZY, 4000, 8000,  0, 0.9975],
-          [STRATEGY.SELF, STRATEGY.LAZY, 1200, 8000,  0, 0.9975],
+          [STRATEGY.SELF, STRATEGY.LAZY, 2000, 8000,  0, 0],
+          [STRATEGY.SELF, STRATEGY.LAZY, 2400, 8000,  0, 0],
+          [STRATEGY.SELF, STRATEGY.LAZY, 4000, 8000,  0, 0],
+          [STRATEGY.SELF, STRATEGY.LAZY, 1200, 8000,  0, 0],
           ]
     for i in range(5):
         for param in params:
@@ -265,6 +265,7 @@ elif exp_type == 9:
                     model_config.save_model_path = "saved_models/active_model"+str(process)+".pth"
                     model_config.select_strategy, model_config.label_strategy, model_config.init_budget, model_config.budget, model_config.threshold, model_config.self_threshold = param
                     model_config.seed = seed
+                    model_config.stop_criteria_steps = 10
                     if model_config.select_strategy==STRATEGY.SELF:
                         model_config.step_budget=20000000
                         model_config.budget=20000000
