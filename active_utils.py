@@ -125,14 +125,14 @@ class ActiveStrategy(object):
         tobe_selected_idxs = []
         tobe_selected_scores = []
         idxs = list(range(len(texts)))
-        l,r = 0,0
+        # l,r = 0,0
         for log_score,id in zip(viterbi_scores,idxs):
-            r+=1
+            # r+=1
             if log_score>=model_config.self_threshold:
                 tobe_selected_idxs.append(id)
                 tobe_selected_scores.append(log_score)
-                l+=1
-            print(l,r,log_score)
+                # l+=1
+            # print(l,r,log_score)
 
         return tobe_selected_idxs, tobe_selected_scores
 
