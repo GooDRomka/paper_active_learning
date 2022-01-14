@@ -20,7 +20,7 @@ except Exception:
     pass
 
 
-for num in ['','2','3','4','5','6','7']:
+for num in ['','2','3','4','5','6','7','8','9','10']:
     for filename in os.listdir(direct_path+num+"/"):
         if num == "":
             num1="1"

@@ -30,6 +30,8 @@ def read_file_active(path, scale):
                 budget = float(line[6])
                 init_budget = float(line[8])
                 step_budget= float(line[10])
+                if line[2] == "STRATEGY.SELF":
+                    step_budget = 500
                 spent_budget = init_budget
                 fullcost = init_budget
 
@@ -75,7 +77,7 @@ def random_color():
 if __name__ == '__main__':
     directory_report = "report/active/"
     shutil.rmtree(directory_report)
-    for num in ['1','2','3','4','5','6', '7']:
+    for num in ['','2','3','4','5','6','7','8','9', '10']:
         model_config = ModelConfig()
 
         path_active = "logs/cluster/log_exp_" + num + ".txt"
@@ -122,15 +124,16 @@ if __name__ == '__main__':
             plt.fill_between(experiments_simple_filt['budget'],experiments_simple_filt[('f1','mean')]+experiments_simple_filt[('f1','std')],experiments_simple_filt[('f1','mean')]- experiments_simple_filt[('f1','std')],alpha=.2)
             j=0
             for i in init_budget:
-                df = iterations[iterations['init_budget']==i]
-                # print(df)
-                plt.plot(df['spent_budget'],df[('bestf1dev','mean')], label=str(i), marker="o", color=colors[j])
-                # plt.plot(df['spent_budget'], df[('added_price', 'mean')], label=str(i), marker="o", color=colors[j])
-                j+=1
-                # plt.fill_between(df['spent_budget'],df[('added_price','mean')]+df[('added_price','std')],df[('added_price','mean')]- df[('added_price','std')],alpha=.2)
+                for s in step_budget:
+                    df = iterations[iterations['init_budget']==i]
+                    df = df[df['step_budget']==s]
+                    plt.plot(df['spent_budget'],df[('bestf1dev','mean')], label=str(i)+" "+str(s), marker="o", color=colors[j])
+                    # plt.plot(df['spent_budget'], df[('added_price', 'mean')], label=str(i), marker="o", color=colors[j])
+                    j+=1
+                    # plt.fill_between(df['spent_budget'],df[('added_price','mean')]+df[('added_price','std')],df[('added_price','mean')]- df[('added_price','std')],alpha=.2)
 
-                plt.fill_between(df['spent_budget'],df[('bestf1dev','mean')]+df[('bestf1dev','std')],df[('bestf1dev','mean')]- df[('bestf1dev','std')],alpha=.2)
-                # plt.errorbar(df['spent_budget'],df[('bestf1dev','mean')], df[('bestf1dev','std')], linestyle='None', marker='^')
+                    plt.fill_between(df['spent_budget'],df[('bestf1dev','mean')]+df[('bestf1dev','std')],df[('bestf1dev','mean')]- df[('bestf1dev','std')],alpha=.2)
+                    # plt.errorbar(df['spent_budget'],df[('bestf1dev','mean')], df[('bestf1dev','std')], linestyle='None', marker='^')
             plt.xlabel('spent_budget')
             plt.ylabel('bestf1dev')
             plt.legend(loc='best')
@@ -162,13 +165,15 @@ if __name__ == '__main__':
             plt.fill_between(experiments_simple_filt['budget'],experiments_simple_filt[('f1','mean')]+experiments_simple_filt[('f1','std')],experiments_simple_filt[('f1','mean')]- experiments_simple_filt[('f1','std')],alpha=.2)
             j = 0
             for i in init_budget:
-                df = iterations[iterations['init_budget']==i]
-                # print(df)
-                pylab.plot(df['spent_budget'], df[('bestf1dev','mean')], label=str(i), marker="o", color=colors[j])
-                # pylab.plot(df['spent_budget'], df[('added_price','mean')], label=str(i), marker="o", color=colors[j])
-                j+=1
-                pylab.fill_between(df['spent_budget'],df[('bestf1dev','mean')]+df[('bestf1dev','std')],df[('bestf1dev','mean')]- df[('bestf1dev','std')],alpha=.2)
-                # plt.errorbar(df['spent_budget'],df[('bestf1dev','mean')], df[('bestf1dev','std')], linestyle='None', marker='^')
+                for s in step_budget:
+                    df = iterations[iterations['init_budget']==i]
+                    df = df[df['step_budget']==s]
+                    # print(df)
+                    pylab.plot(df['spent_budget'], df[('bestf1dev','mean')], label=str(i)+" "+str(s), marker="o", color=colors[j])
+                    # pylab.plot(df['spent_budget'], df[('added_price','mean')], label=str(i), marker="o", color=colors[j])
+                    j+=1
+                    pylab.fill_between(df['spent_budget'],df[('bestf1dev','mean')]+df[('bestf1dev','std')],df[('bestf1dev','mean')]- df[('bestf1dev','std')],alpha=.2)
+                    # plt.errorbar(df['spent_budget'],df[('bestf1dev','mean')], df[('bestf1dev','std')], linestyle='None', marker='^')
 
             pylab.xlabel('spent_budget')
             pylab.ylabel('bestf1dev')
@@ -179,7 +184,7 @@ if __name__ == '__main__':
             pli+=1
         Title = {"1":"lazy active learning, LC, threshold 0.5","2":"self learning,LC, threshold 0","3":"active learning, LC",
                  "4":"lazy active learning, LC, threshold 0.25","5":"lazy active learning, LC, threshold 0.75","6":"lazy active learning,RAND, threshold 0.75",
-                 "7":"self learning, RAND, threshold 0"}
+                 "7":"self learning, RAND, threshold 0", "8":"lazy active learning, LC, threshold 0.5, dif step", "9":"self learning paper version"}
         pylab.suptitle(Title[num])
         pylab.savefig(directory_report+new_plot_num+"_active_all.png")
 
