@@ -300,7 +300,7 @@ elif exp_type == 10:
                                     'threshold', model_config.threshold,  "lr", model_config.learning_rate,"batch_size", model_config.batch_size, 'seed', model_config.seed ])
 
                     start_active_learning(train, dev, test, model_config)
-elif exp_type == 1:
+elif exp_type == 11:
     # self learning rand
     params = [
           [STRATEGY.SELF, STRATEGY.LAZY, 2000, 8000,  0, 0.9975],
