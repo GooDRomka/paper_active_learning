@@ -30,6 +30,8 @@ def read_file_active(path, scale):
                 budget = float(line[6])
                 init_budget = float(line[8])
                 step_budget= float(line[10])
+                if line[2] == "STRATEGY.SELF":
+                    step_budget = 500
                 spent_budget = init_budget
                 fullcost = init_budget
 
@@ -78,17 +80,19 @@ if __name__ == '__main__':
     shutil.rmtree(directory_report)
     Title = {"1":"lazy,LC,0.5","2":"self,LC,0","3":"active,LC",
          "4":"lazy,LC,0.25","5":"lazy,LC,0.75","6":"lazy,RAND,0.75",
-         "7":"self,RAND,0"}
+         "7":"self,RAND,0", "8":"lazy,LC,0.5,dif step", "9":"self paper 0,9975",
+                 "10":"self paper 0,99","11":"self paper 0,9975 14",
+                 "12":"self paper 0,99 14"}
     scale = 1
     i = 2000
     # added_price_i = False
-    for added_price_i in [True, False]:
+    for added_price_i in [False]:
         for scale in [1,0.5,0.4,0.2,0.1]:
-            for i in [1000,2000,3000,2400,4000,1200,1600,800]:
+            for i in [1200,2000,1600,2400,4000]:
                 plt.style.use('ggplot')
                 plt.figure(figsize=(22,16))
                 j=0
-                for num in ['1','2','3','4','5','6','7']:
+                for num in ['1','2','3','4','5','6','7','8','9','10','11','12']:
                     model_config = ModelConfig()
                     path_active = "logs/cluster/log_exp_" + num + ".txt"
                     if not os.path.exists(directory_report):

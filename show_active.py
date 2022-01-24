@@ -77,7 +77,7 @@ def random_color():
 if __name__ == '__main__':
     directory_report = "report/active/"
     shutil.rmtree(directory_report)
-    for num in ['','2','3','4','5','6','7','8','9', '10']:
+    for num in ['1','2','3','4','5','6','7','8','9','10','11','12']:
         model_config = ModelConfig()
 
         path_active = "logs/cluster/log_exp_" + num + ".txt"
@@ -180,11 +180,13 @@ if __name__ == '__main__':
             pylab.legend(loc='best')
             pylab.title("active learning with scale = "+str(scale))
             # plt.show()
-            # pylab.savefig("report/active "+ str(scale)+'.png')
+            # pylab.savefig("repor  t/active "+ str(scale)+'.png')
             pli+=1
         Title = {"1":"lazy active learning, LC, threshold 0.5","2":"self learning,LC, threshold 0","3":"active learning, LC",
                  "4":"lazy active learning, LC, threshold 0.25","5":"lazy active learning, LC, threshold 0.75","6":"lazy active learning,RAND, threshold 0.75",
-                 "7":"self learning, RAND, threshold 0", "8":"lazy active learning, LC, threshold 0.5, dif step", "9":"self learning paper version"}
+                 "7":"self learning, RAND, threshold 0", "8":"lazy active learning, LC, threshold 0.5, dif step", "9":"self learning paper version 0,9975",
+                 "10":"self learning paper version 0,99", "11":"self learning paper version 0,9975 14",
+                 "12":"self learning paper version 0,99 14"}
         pylab.suptitle(Title[num])
         pylab.savefig(directory_report+new_plot_num+"_active_all.png")
 
