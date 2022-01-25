@@ -317,9 +317,6 @@ elif exp_type == 11:
                     model_config.select_strategy, model_config.label_strategy, model_config.init_budget, model_config.budget, model_config.threshold, model_config.self_threshold = param
                     model_config.seed = seed
                     model_config.stop_criteria_steps = 14
-                    if model_config.select_strategy==STRATEGY.SELF:
-                        model_config.step_budget=20000000
-                        model_config.budget=20000000
                     stat_in_file(model_config.loginfo, ["\n\n"])
                     stat_in_file(model_config.loginfo, ['BEGIN', 'selecting_strategy', model_config.select_strategy, 'labeling_strategy', model_config.label_strategy, 'budget', model_config.budget, 'init_budget', model_config.init_budget, 'step_budget', model_config.step_budget,
                                     'threshold', model_config.threshold,  "lr", model_config.learning_rate,"batch_size", model_config.batch_size, 'seed', model_config.seed ])
@@ -343,9 +340,6 @@ elif exp_type == 12:
                     model_config.select_strategy, model_config.label_strategy, model_config.init_budget, model_config.budget, model_config.threshold, model_config.self_threshold = param
                     model_config.seed = seed
                     model_config.stop_criteria_steps = 14
-                    if model_config.select_strategy==STRATEGY.SELF:
-                        model_config.step_budget=20000000
-                        model_config.budget=20000000
                     stat_in_file(model_config.loginfo, ["\n\n"])
                     stat_in_file(model_config.loginfo, ['BEGIN', 'selecting_strategy', model_config.select_strategy, 'labeling_strategy', model_config.label_strategy, 'budget', model_config.budget, 'init_budget', model_config.init_budget, 'step_budget', model_config.step_budget,
                                     'threshold', model_config.threshold,  "lr", model_config.learning_rate,"batch_size", model_config.batch_size, 'seed', model_config.seed ])
