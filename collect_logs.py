@@ -12,10 +12,14 @@ import os
 #         with open(output, "a") as fw, open(input,"r") as fr: fw.writelines(l for l in fr)
 
 def bad_files(num,name):
-    if num=="9" and float(name[:1])<=20:
+    if name[0]=="0":
+        name = float(name[1])
+    else:
+        name = float(name)
+    if num=="9" and name<=20:
         return True
-    if num in ["9","10",'11','12'] and float(name[:1])<=2:
-        print("bad file", filename,num)
+    if num in ["9","10",'11','12'] and name<=2:
+        print("bad file", filename,num,name)
         return True
     return False
 
@@ -33,7 +37,7 @@ for num in ['','2','3','4','5','6','7','8','9','10','11','12']:
             num1="1"
         else:
             num1 = num
-        if not bad_files(num1,filename):
+        if not bad_files(num1,filename[:2]):
             input = direct_path+num+"/"+filename
             print(" ", input)
             with open(output+num1+".txt", "a") as fw, open(input,"r") as fr: fw.writelines(l for l in fr)

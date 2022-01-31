@@ -77,7 +77,7 @@ def random_color():
 if __name__ == '__main__':
     directory_report = "report/active/"
     shutil.rmtree(directory_report)
-    for num in ['1','2','3','4','5','6','7','8','9','10','11','12']:
+    for num in ['1','2','3','4','5','6','7','8','9','11','12']:
         model_config = ModelConfig()
 
         path_active = "logs/cluster/log_exp_" + num + ".txt"

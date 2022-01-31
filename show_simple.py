@@ -29,6 +29,17 @@ def read_file_simple_torch(path):
                 experiments.append(stat)
     return pd.DataFrame(experiments)
 
+def read_file_simple_self_new(path):
+    experiments = []
+    loginfo = read_from_csv(path)
+    for line in loginfo:
+        if len(line) != 0:
+            if line[0] == "initbudget":
+                stat = {"budget": float(line[1]),"f1": float(line[11])*100, "precision": float(line[12])*100, "recall": float(line[13])*100
+                         }
+                experiments.append(stat)
+    return pd.DataFrame(experiments)
+
 def read_file_simple(path):
     experiments = []
     loginfo = read_from_csv(path)
@@ -102,11 +113,11 @@ if __name__ == '__main__':
     plt.plot(experiments_simple['budget'], experiments_simple[('f1','mean')], marker="o", label="TF")
     plt.fill_between(experiments_simple['budget'],experiments_simple[('f1','mean')]+experiments_simple[('f1','std')],experiments_simple[('f1','mean')]- experiments_simple[('f1','std')],alpha=.2)
 
-    experiments_old = read_file_simple_torch("logs/simple/simple_batched_8_0.003.csv")
-    experiments_simple = experiments_old.groupby('budget',as_index=False).agg({'f1': ['mean', 'std'],'precision': ['mean', 'std'],'recall': ['mean', 'std']})
-    plt.plot(experiments_simple['budget'], experiments_simple[('f1','mean')], marker="o", label="TORCH")
-    plt.fill_between(experiments_simple['budget'],experiments_simple[('f1','mean')]+experiments_simple[('f1','std')],experiments_simple[('f1','mean')]- experiments_simple[('f1','std')],alpha=.2)
 
+    experiments_self_paper = read_file_simple_self_new("/home/roman/PycharmProjects/biomedner/logs/self_results_simple.csv")
+    experiments_simple = experiments_self_paper.groupby('budget',as_index=False).agg({'f1': ['mean', 'std'],'precision': ['mean', 'std'],'recall': ['mean', 'std']})
+    plt.plot(experiments_simple['budget'], experiments_simple[('f1','mean')], marker="o", label="SELF_PAPER")
+    plt.fill_between(experiments_simple['budget'],experiments_simple[('f1','mean')]+experiments_simple[('f1','std')],experiments_simple[('f1','mean')]- experiments_simple[('f1','std')],alpha=.5)
 
     plt.legend(loc='best')
     plt.xlabel('budget')

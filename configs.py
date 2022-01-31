@@ -36,7 +36,7 @@ class ModelConfig(object):
         # self.vectors = []
         # self.train_sentences = 'data/english/train_vectors_small.txt'
         # self.vocab = './data/chinese/vocab.txt'
-        # self.positive_tags = ['B-LOC', 'I-LOC', 'B-PER', 'I-PER', 'B-ORG', 'I-ORG', 'B-MISC', 'I-MISC']
+        # self.positive_tags = ['B-LOC', 'I-LOC', 'B-PER', 'I-PER', 'B-ORG', 'I-ORG', 'B-MISC', 'I-MISC','O']
         # self.tag_to_ix = {"<START>": 0, "<STOP>": 1, 'B-LOC': 2, 'I-LOC': 3, 'B-PER': 4, 'I-PER': 5, 'B-ORG': 6, 'I-ORG': 7, 'B-MISC': 8, 'I-MISC': 9, "O": 10}
         # self.path = 'logs/loginfo.csv'
         # self.positive_ids = None

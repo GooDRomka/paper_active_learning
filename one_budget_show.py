@@ -88,11 +88,11 @@ if __name__ == '__main__':
     # added_price_i = False
     for added_price_i in [False]:
         for scale in [1,0.5,0.4,0.2,0.1]:
-            for i in [1200,2000,1600,2400,4000]:
+            for i in [800,2000,4000]:
                 plt.style.use('ggplot')
                 plt.figure(figsize=(22,16))
                 j=0
-                for num in ['1','2','3','4','5','6','7','8','9','10','11','12']:
+                for num in ['1','2','3','4','5','6','7','8','9','11','12']:
                     model_config = ModelConfig()
                     path_active = "logs/cluster/log_exp_" + num + ".txt"
                     if not os.path.exists(directory_report):
