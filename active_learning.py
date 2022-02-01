@@ -20,9 +20,7 @@ def start_active_learning(train, dev, test, model_config):
     selected_ids = dataPool.get_selected_id()
     stat_in_file(model_config.loginfo, ["initDist", init_distribution(selected_labels), "initbudget", model_config.init_budget,
                     "initSumPrices", compute_price(selected_labels), "memory", model_config.p.memory_info().rss/1024/1024])
-    if model_config.select_strategy==STRATEGY.SELF:
-        model_config.step_budget=20000000
-        model_config.budget=20000000
+
     print("init_distribution", init_distribution(selected_labels),"init_budget", compute_price(selected_labels))
 
 
@@ -50,7 +48,9 @@ def start_active_learning(train, dev, test, model_config):
     end_marker = True
     while (selected_texts is None) or sum_prices < model_config.budget - 10 and not end_marker:
         iterations_of_learning += 1
-
+        if model_config.select_strategy==STRATEGY.SELF:
+            model_config.step_budget=20000000
+            model_config.budget=20000000
         ### выбрать несколько примеров с помощью активки и разметить их
         dataPool, price, perfect, not_perfect, sum_prices = active_learing_sampling(network, dataPool, model_config, args, train_m, train, sum_prices, iterations_of_learning)
         selected_texts, selected_labels = dataPool.get_selected()
