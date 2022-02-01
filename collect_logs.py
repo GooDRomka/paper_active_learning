@@ -16,6 +16,8 @@ def bad_files(num,name):
         name = float(name[1])
     else:
         name = float(name)
+    if num=="3" and name in [5,6]:
+        return True
     if num=="9" and name<=23:
         return True
     if num=="10" and name<=2:
