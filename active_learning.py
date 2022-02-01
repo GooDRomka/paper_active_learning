@@ -47,7 +47,7 @@ def start_active_learning(train, dev, test, model_config):
 
     ### активка цикл
     end_marker, iterations_of_learning, sum_prices, sum_perfect, sum_changed, sum_not_changed, sum_not_perfect, perfect, not_perfect, changed, not_changed, thrown_away, price = False, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-
+    end_marker = True
     while (selected_texts is None) or sum_prices < model_config.budget - 10 and not end_marker:
         iterations_of_learning += 1
 
@@ -87,13 +87,13 @@ def start_active_learning(train, dev, test, model_config):
                   "devprecision", precision, "devrecall", recall, "devf1", f1, "memory", model_config.p.memory_info().rss/1024/1024])
 
 
-    get_conll_file("test", model_config, test['texts'], test['embed'], test['labels'])
-
-    network, args, train_m, testf1, testprecision, testrecall = train_model(model_config)
-
-    stat_in_file(model_config.loginfo,
-                 ["result", "len(selected_texts):", len(selected_texts), "budget:", model_config.budget, "Init_budget:", model_config.init_budget,
-                  "testprecision", testprecision, "testrecall", testrecall, "testf1", testf1, "devprecision", precision, "devrecall", recall, "devf1", f1])
-
-    print("result", "len(selected_texts):", len(selected_texts), "budget:", model_config.budget, "Init_budget:", model_config.init_budget,
-                  "testprecision", testprecision, "testrecall", testrecall, "testf1", testf1, "devprecision", precision, "devrecall", recall, "devf1", f1)
+    # get_conll_file("test", model_config, test['texts'], test['embed'], test['labels'])
+    #
+    # network, args, train_m, testf1, testprecision, testrecall = train_model(model_config)
+    #
+    # stat_in_file(model_config.loginfo,
+    #              ["result", "len(selected_texts):", len(selected_texts), "budget:", model_config.budget, "Init_budget:", model_config.init_budget,
+    #               "testprecision", testprecision, "testrecall", testrecall, "testf1", testf1, "devprecision", precision, "devrecall", recall, "devf1", f1])
+    #
+    # print("result", "len(selected_texts):", len(selected_texts), "budget:", model_config.budget, "Init_budget:", model_config.init_budget,
+    #               "testprecision", testprecision, "testrecall", testrecall, "testf1", testf1, "devprecision", precision, "devrecall", recall, "devf1", f1)
