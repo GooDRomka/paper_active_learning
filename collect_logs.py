@@ -16,9 +16,11 @@ def bad_files(num,name):
         name = float(name[1])
     else:
         name = float(name)
-    if num=="9" and name<=20:
+    if num=="9" and name<=23:
         return True
-    if num in ["9","10",'11','12'] and name<=2:
+    if num=="10" and name<=2:
+        return True
+    if num in ['11','12'] and name<=4:
         print("bad file", filename,num,name)
         return True
     return False

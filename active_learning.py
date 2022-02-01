@@ -59,12 +59,11 @@ def start_active_learning(train, dev, test, model_config):
             break
         embedings, labels = get_embeding(selected_ids, selected_labels, train['embed'])
 
-        if model_config.select_strategy != STRATEGY.SELF:
+        if model_config.select_strategy == STRATEGY.NORMAL:
             X_train, X_dev, y_train, y_dev = train_test_split(list(range(len(labels))), list(range(len(labels))),
                                                           test_size=0.2, random_state=42)
             train_texts,train_embed,train_labels = [selected_texts[i] for i in X_train], [embedings[i] for i in X_train], [selected_labels[i] for i in X_train]
             dev_texts,dev_embed,dev_labels = [selected_texts[i] for i in X_dev], [embedings[i] for i in X_dev],[selected_labels[i] for i in X_dev]
-
         else:
             for i in X_train:
                 if selected_labels[i] in dev_init_ids:
