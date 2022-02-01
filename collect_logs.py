@@ -18,9 +18,9 @@ def bad_files(num,name):
         name = float(name)
     if num=="3" and name in [5,6]:
         return True
-    if num=="9" and name<=23:
+    if num=="9" and name<=25:
         return True
-    if num=="10" and name<=2:
+    if num=="10" and name<=8:
         return True
     if num in ['11','12'] and name<=4:
         print("bad file", filename,num,name)
@@ -35,7 +35,7 @@ except Exception:
     pass
 
 
-for num in ['','2','3','4','5','6','7','8','9','10','11','12']:
+for num in ['','2','3','4','5','6','7','8','9','10']:
     for filename in os.listdir(direct_path+num+"/"):
         if num == "":
             num1="1"

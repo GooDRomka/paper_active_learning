@@ -92,7 +92,7 @@ if __name__ == '__main__':
                 plt.style.use('ggplot')
                 plt.figure(figsize=(22,16))
                 j=0
-                for num in ['1','2','3','4','5','6','7','8','9','11','12']:
+                for num in ['1','2','3','4','5','6','7','8','9','10']:
                     model_config = ModelConfig()
                     path_active = "logs/cluster/log_exp_" + num + ".txt"
                     if not os.path.exists(directory_report):
