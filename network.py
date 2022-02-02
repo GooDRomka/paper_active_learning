@@ -176,15 +176,7 @@ class Network:
 
     def train_epoch(self, train, learning_rate, args):
         while not train.epoch_finished():
-            seq2seq = args.decoding == "seq2seq"
-            batch_dict = train.next_batch(args.batch_size, args.form_wes_model, args.lemma_wes_model, including_charseqs=args.including_charseqs, seq2seq=seq2seq)
-            if args.word_dropout:
-                mask = np.random.binomial(n=1, p=args.word_dropout, size=batch_dict["word_ids"][train.FORMS].shape)
-                batch_dict["word_ids"][train.FORMS] = (1 - mask) * batch_dict["word_ids"][train.FORMS] + mask * train.factors[train.FORMS].words_map["<unk>"]
-
-                mask = np.random.binomial(n=1, p=args.word_dropout, size=batch_dict["word_ids"][train.LEMMAS].shape)
-                batch_dict["word_ids"][train.LEMMAS] = (1 - mask) * batch_dict["word_ids"][train.LEMMAS] + mask * train.factors[train.LEMMAS].words_map["<unk>"]
-
+            batch_dict = train.next_batch(args.batch_size)
             self.session.run(self.reset_metrics)
             feeds = {self.sentence_lens: batch_dict["sentence_lens"],
                      self.tags: batch_dict["word_ids"][train.TAGS],
@@ -234,8 +226,7 @@ class Network:
         tags = []
         scors = []
         while not dataset.epoch_finished():
-            seq2seq = args.decoding == "seq2seq"
-            batch_dict = dataset.next_batch(args.batch_size, args.form_wes_model, args.lemma_wes_model,  args.including_charseqs, seq2seq=seq2seq)
+            batch_dict = dataset.next_batch(args.batch_size)
             targets = [self.predictions]
             scores = [self.viterbi_score]
 
@@ -285,8 +276,7 @@ class Network:
             self.session.run(self.reset_metrics)
         tags = []
         while not dataset.epoch_finished():
-            seq2seq = args.decoding == "seq2seq"
-            batch_dict = dataset.next_batch(args.batch_size, args.form_wes_model, args.lemma_wes_model, args.including_charseqs, seq2seq=seq2seq)
+            batch_dict = dataset.next_batch(args.batch_size)
             targets = [self.predictions]
 
             feeds = {self.sentence_lens: batch_dict["sentence_lens"],
@@ -380,21 +370,12 @@ def train_model(model_config):
         dev = morpho_dataset.MorphoDataset(args.dev_data, train=train, shuffle_batches=False,  bert_embeddings_filename=args.bert_embeddings_dev)
     test = morpho_dataset.MorphoDataset(args.test_data, train=train, shuffle_batches=False,  bert_embeddings_filename=args.bert_embeddings_test)
 
-    # Load pretrained form embeddings
-    if args.form_wes_model:
-        args.form_wes_model = word2vec.load(args.form_wes_model)
-    if args.lemma_wes_model:
-        args.lemma_wes_model = word2vec.load(args.lemma_wes_model)
-
-
     # Character-level embeddings
     args.including_charseqs = (args.cle_dim > 0)
 
     # Construct the network
     network = Network(threads=args.threads)
     network.construct(args,
-
-
                       num_tags=len(train.factors[train.TAGS].words),
 
                       pretrained_bert_dim=train.bert_embeddings_dim(),
