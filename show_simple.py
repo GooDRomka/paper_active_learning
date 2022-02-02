@@ -119,6 +119,11 @@ if __name__ == '__main__':
     plt.plot(experiments_simple['budget'], experiments_simple[('f1','mean')], marker="o", label="SELF_PAPER")
     plt.fill_between(experiments_simple['budget'],experiments_simple[('f1','mean')]+experiments_simple[('f1','std')],experiments_simple[('f1','mean')]- experiments_simple[('f1','std')],alpha=.5)
 
+    experiments_self_paper = read_file_simple_self_new("/home/roman/PycharmProjects/biomedner/logs/self_results_simple_lazy.csv")
+    experiments_simple = experiments_self_paper.groupby('budget',as_index=False).agg({'f1': ['mean', 'std'],'precision': ['mean', 'std'],'recall': ['mean', 'std']})
+    plt.plot(experiments_simple['budget'], experiments_simple[('f1','mean')], marker="o", label="SELF_PAPER_lazy_adam")
+    plt.fill_between(experiments_simple['budget'],experiments_simple[('f1','mean')]+experiments_simple[('f1','std')],experiments_simple[('f1','mean')]- experiments_simple[('f1','std')],alpha=.5)
+
     plt.legend(loc='best')
     plt.xlabel('budget')
     plt.ylabel('f1')

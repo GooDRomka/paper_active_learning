@@ -92,14 +92,15 @@ elif exp_type == 2:
                     start_active_learning(train, dev, test, model_config)
 elif exp_type == 3:
     # active leaning
-    params = [[STRATEGY.LC, STRATEGY.NORMAL, 800, 8000, 0],
-          [STRATEGY.LC, STRATEGY.NORMAL, 1000, 8000, 0],
-          [STRATEGY.LC, STRATEGY.NORMAL, 2000, 8000, 0],
-          [STRATEGY.LC, STRATEGY.NORMAL, 3000, 8000, 0],
-          [STRATEGY.LC, STRATEGY.NORMAL, 2400, 8000, 0],
+    params = [
+        # [STRATEGY.LC, STRATEGY.NORMAL, 800, 8000, 0],
+        #   [STRATEGY.LC, STRATEGY.NORMAL, 1000, 8000, 0],
+        #   [STRATEGY.LC, STRATEGY.NORMAL, 2000, 8000, 0],
+        #   [STRATEGY.LC, STRATEGY.NORMAL, 3000, 8000, 0],
+        #   [STRATEGY.LC, STRATEGY.NORMAL, 2400, 8000, 0],
           [STRATEGY.LC, STRATEGY.NORMAL, 4000, 8000, 0],
-          [STRATEGY.LC, STRATEGY.NORMAL, 1200, 8000, 0],
-          [STRATEGY.LC, STRATEGY.NORMAL, 1600, 8000, 0],
+          # [STRATEGY.LC, STRATEGY.NORMAL, 1200, 8000, 0],
+          # [STRATEGY.LC, STRATEGY.NORMAL, 1600, 8000, 0],
           ]
     for i in range(5):
         for param in params:
@@ -252,10 +253,10 @@ elif exp_type == 8:
 elif exp_type == 9:
     # self learning rand
     params = [
-          [STRATEGY.SELF, STRATEGY.LAZY, 2000, 8000,  0, 0.9975],
-          [STRATEGY.SELF, STRATEGY.LAZY, 2400, 8000,  0, 0.9975],
           [STRATEGY.SELF, STRATEGY.LAZY, 4000, 8000,  0, 0.9975],
-          [STRATEGY.SELF, STRATEGY.LAZY, 1200, 8000,  0, 0.9975],
+          # [STRATEGY.SELF, STRATEGY.LAZY, 2400, 8000,  0, 0.9975],
+          # [STRATEGY.SELF, STRATEGY.LAZY, 4000, 8000,  0, 0.9975],
+          # [STRATEGY.SELF, STRATEGY.LAZY, 1200, 8000,  0, 0.9975],
           ]
     for i in range(5):
         for param in params:

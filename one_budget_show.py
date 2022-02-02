@@ -81,14 +81,13 @@ if __name__ == '__main__':
     Title = {"1":"lazy,LC,0.5","2":"self,LC,0","3":"active,LC",
          "4":"lazy,LC,0.25","5":"lazy,LC,0.75","6":"lazy,RAND,0.75",
          "7":"self,RAND,0", "8":"lazy,LC,0.5,dif step", "9":"self paper 0,9975",
-                 "10":"self paper 0,99","11":"self paper 0,9975 14",
-                 "12":"self paper 0,99 14"}
+                 "10":"self paper 0,99"}
     scale = 1
     i = 2000
     # added_price_i = False
     for added_price_i in [False]:
         for scale in [1,0.5,0.4,0.2,0.1]:
-            for i in [800,2000,4000]:
+            for i in [1200,2000,4000]:
                 plt.style.use('ggplot')
                 plt.figure(figsize=(22,16))
                 j=0
