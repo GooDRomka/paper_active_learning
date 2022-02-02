@@ -225,7 +225,7 @@ class MorphoDataset:
 
         return self._factors
 
-    def next_batch(self, batch_size, form_wes_model, lemma_wes_model, fasttext_model, including_charseqs=False, seq2seq=False):
+    def next_batch(self, batch_size, form_wes_model, lemma_wes_model, including_charseqs=False, seq2seq=False):
         """Return the next batch.
         Arguments:
         including_charseqs: if True, also batch_charseq_ids, batch_charseqs and batch_charseq_lens are returned
@@ -256,7 +256,7 @@ class MorphoDataset:
         batch_size = min(batch_size, len(self._permutation))
         batch_perm = self._permutation[:batch_size]
         self._permutation = self._permutation[batch_size:]
-        return self._next_batch(batch_perm, form_wes_model, lemma_wes_model, fasttext_model, including_charseqs, seq2seq)
+        return self._next_batch(batch_perm, form_wes_model, lemma_wes_model, including_charseqs, seq2seq)
 
     def epoch_finished(self):
         if len(self._permutation) == 0:
@@ -282,7 +282,7 @@ class MorphoDataset:
         else:
             return 0
 
-    def _next_batch(self, batch_perm, form_wes_model, lemma_wes_model, fasttext_model, including_charseqs, seq2seq=False):
+    def _next_batch(self, batch_perm, form_wes_model, lemma_wes_model, including_charseqs, seq2seq=False):
         batch_size = len(batch_perm)
         batch_dict = dict()
 
@@ -349,14 +349,6 @@ class MorphoDataset:
                         pretrained_wes[i, j] = form_wes_model[word.lower()]
             batch_dict["batch_form_pretrained_wes"] = pretrained_wes 
 
-        # Fasttext word embeddings for forms
-        if fasttext_model:
-            we_size = fasttext_model.get_dimension() # get pretrained WEs dimension
-            fasttext_wes = np.zeros([batch_size, max_sentence_len, we_size], np.float32)
-            for i in range(batch_size):
-                for j, word in enumerate(self._factors[self.FORMS].strings[batch_perm[i]]):
-                    fasttext_wes[i, j] = fasttext_model.get_word_vector(word)
-            batch_dict["batch_form_fasttext_wes"] = fasttext_wes 
 
         # Pretrained BERT embeddings for forms
         if self._bert_embeddings:

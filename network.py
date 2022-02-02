@@ -23,7 +23,7 @@ import json
 import os
 import sys
 
-import fasttext
+
 import numpy as np
 import  tensorflow as tf
 from gensim.models import word2vec
@@ -52,7 +52,7 @@ class Arguments(object):
         self.elmo_test=None
         self.elmo_train=None
         self.epochs="1:1e-3"
-        self.fasttext_model=None
+
         self.flair_dev=None
         self.flair_test=None
         self.flair_train=None
@@ -80,9 +80,9 @@ class Network:
         self.session = tf.Session(graph = graph, config=tf.ConfigProto(inter_op_parallelism_threads=threads,
                                                                        intra_op_parallelism_threads=threads))
 
-    def construct(self, args, num_forms, num_form_chars, num_lemmas, num_lemma_chars, num_pos,
-                  pretrained_form_we_dim, pretrained_lemma_we_dim, pretrained_fasttext_dim,
-                  num_tags, tag_bos, tag_eow, pretrained_bert_dim, pretrained_flair_dim, pretrained_elmo_dim,
+    def construct(self, args, num_forms,  num_lemmas,  num_pos,
+                  pretrained_form_we_dim, pretrained_lemma_we_dim,
+                  num_tags,  pretrained_bert_dim,
                   predict_only):
         with self.session.graph.as_default():
 
@@ -93,22 +93,12 @@ class Network:
             self.pos_ids = tf.placeholder(tf.int32, [None, None], name="pos_ids")
             self.pretrained_form_wes = tf.placeholder(tf.float32, [None, None, pretrained_form_we_dim], name="pretrained_form_wes")
             self.pretrained_lemma_wes = tf.placeholder(tf.float32, [None, None, pretrained_lemma_we_dim], name="pretrained_lemma_wes")
-            self.pretrained_fasttext_wes = tf.placeholder(tf.float32, [None, None, pretrained_fasttext_dim], name="fasttext_wes")
+
             self.pretrained_bert_wes = tf.placeholder(tf.float32, [None, None, pretrained_bert_dim], name="bert_wes")
-            self.pretrained_flair_wes = tf.placeholder(tf.float32, [None, None, pretrained_flair_dim], name="flair_wes")
-            self.pretrained_elmo_wes = tf.placeholder(tf.float32, [None, None, pretrained_elmo_dim], name="elmo_wes")
+
             self.tags = tf.placeholder(tf.int32, [None, None], name="tags")
             self.is_training = tf.placeholder(tf.bool, [])
             self.learning_rate = tf.placeholder(tf.float32, [])
-
-            if args.including_charseqs:
-                self.form_charseqs = tf.placeholder(tf.int32, [None, None], name="form_charseqs")
-                self.form_charseq_lens = tf.placeholder(tf.int32, [None], name="form_charseq_lens")
-                self.form_charseq_ids = tf.placeholder(tf.int32, [None,None], name="form_charseq_ids")
-
-                self.lemma_charseqs = tf.placeholder(tf.int32, [None, None], name="lemma_charseqs")
-                self.lemma_charseq_lens = tf.placeholder(tf.int32, [None], name="lemma_charseq_lens")
-                self.lemma_charseq_ids = tf.placeholder(tf.int32, [None,None], name="lemma_charseq_ids")
 
             # RNN Cell
 
@@ -127,71 +117,11 @@ class Network:
             # POS encoded as one-hot vectors
             inputs.append(tf.one_hot(self.pos_ids, num_pos))
 
-            # Pretrained embeddings for forms
-            if args.form_wes_model:
-                inputs.append(self.pretrained_form_wes)
-
-            # Pretrained embeddings for lemmas
-            if args.lemma_wes_model:
-                inputs.append(self.pretrained_lemma_wes)
-
-            # Fasttext form embeddings
-            if args.fasttext_model:
-                inputs.append(self.pretrained_fasttext_wes)
 
             # BERT form embeddings
             if pretrained_bert_dim:
                 inputs.append(self.pretrained_bert_wes)
 
-            # Flair form embeddings
-            if pretrained_flair_dim:
-                inputs.append(self.pretrained_flair_wes)
-
-            # ELMo form embeddings
-            if pretrained_elmo_dim:
-                inputs.append(self.pretrained_elmo_wes)
-
-            # Character-level form embeddings
-            if args.including_charseqs:
-
-                # Generate character embeddings for num_form_chars of dimensionality args.cle_dim.
-                character_embeddings = tf.get_variable("form_character_embeddings",
-                                                        shape=[num_form_chars, args.cle_dim],
-                                                        dtype=tf.float32)
-
-                # Embed self.form_charseqs (list of unique form in the batch) using the character embeddings.
-                characters_embedded = tf.nn.embedding_lookup(character_embeddings, self.form_charseqs)
-
-                # Use tf.nn.bidirectional.rnn to process embedded self.form_charseqs
-                # using a GRU cell of dimensionality args.cle_dim.
-                _, (state_fwd, state_bwd) = tf.nn.bidirectional_dynamic_rnn(
-                        tf.nn.rnn_cell.GRUCell(args.cle_dim), tf.nn.rnn_cell.GRUCell(args.cle_dim),
-                        characters_embedded, sequence_length=self.form_charseq_lens, dtype=tf.float32, scope="form_cle")
-
-                # Sum the resulting fwd and bwd state to generate character-level form embedding (CLE)
-                # of unique forms in the batch.
-                cle = tf.concat([state_fwd, state_bwd], axis=1)
-
-                # Generate CLEs of all form in the batch by indexing the just computed embeddings
-                # by self.form_charseq_ids (using tf.nn.embedding_lookup).
-                cle_embedded = tf.nn.embedding_lookup(cle, self.form_charseq_ids)
-
-                # Concatenate the form embeddings (computed above in inputs) and the CLE (in this order).
-                inputs.append(cle_embedded)
-
-            # Character-level lemma embeddings
-            if args.including_charseqs:
-
-                character_embeddings = tf.get_variable("lemma_character_embeddings",
-                                                        shape=[num_lemma_chars, args.cle_dim],
-                                                        dtype=tf.float32)
-                characters_embedded = tf.nn.embedding_lookup(character_embeddings, self.lemma_charseqs)
-                _, (state_fwd, state_bwd) = tf.nn.bidirectional_dynamic_rnn(
-                        tf.nn.rnn_cell.GRUCell(args.cle_dim), tf.nn.rnn_cell.GRUCell(args.cle_dim),
-                        characters_embedded, sequence_length=self.lemma_charseq_lens, dtype=tf.float32, scope="lemma_cle")
-                cle = tf.concat([state_fwd, state_bwd], axis=1)
-                cle_embedded = tf.nn.embedding_lookup(cle, self.lemma_charseq_ids)
-                inputs.append(cle_embedded)
 
             # Concatenate inputs
             inputs = tf.concat(inputs, axis=2)
@@ -268,7 +198,7 @@ class Network:
     def train_epoch(self, train, learning_rate, args):
         while not train.epoch_finished():
             seq2seq = args.decoding == "seq2seq"
-            batch_dict = train.next_batch(args.batch_size, args.form_wes_model, args.lemma_wes_model, args.fasttext_model, including_charseqs=args.including_charseqs, seq2seq=seq2seq)
+            batch_dict = train.next_batch(args.batch_size, args.form_wes_model, args.lemma_wes_model, including_charseqs=args.including_charseqs, seq2seq=seq2seq)
             if args.word_dropout:
                 mask = np.random.binomial(n=1, p=args.word_dropout, size=batch_dict["word_ids"][train.FORMS].shape)
                 batch_dict["word_ids"][train.FORMS] = (1 - mask) * batch_dict["word_ids"][train.FORMS] + mask * train.factors[train.FORMS].words_map["<unk>"]
@@ -288,23 +218,8 @@ class Network:
                 feeds[self.pretrained_form_wes] = batch_dict["batch_form_pretrained_wes"]
             if args.lemma_wes_model: # pretrained lemma embeddings
                 feeds[self.pretrained_lemma_wes] = batch_dict["batch_lemma_pretrained_wes"]
-            if args.fasttext_model: # fasttext form embeddings
-                feeds[self.pretrained_fasttext_wes] = batch_dict["batch_form_fasttext_wes"]
             if args.bert_embeddings_train: # BERT embeddings
                 feeds[self.pretrained_bert_wes] = batch_dict["batch_bert_wes"]
-            if args.flair_train: # flair embeddings
-                feeds[self.pretrained_flair_wes] = batch_dict["batch_flair_wes"]
-            if args.elmo_train: # elmo embeddings
-                feeds[self.pretrained_elmo_wes] = batch_dict["batch_elmo_wes"]
-
-            if args.including_charseqs: # character-level embeddings
-                feeds[self.form_charseqs] = batch_dict["batch_charseqs"][train.FORMS]
-                feeds[self.form_charseq_lens] = batch_dict["batch_charseq_lens"][train.FORMS]
-                feeds[self.form_charseq_ids] = batch_dict["batch_charseq_ids"][train.FORMS]
-
-                feeds[self.lemma_charseqs] = batch_dict["batch_charseqs"][train.LEMMAS]
-                feeds[self.lemma_charseq_lens] = batch_dict["batch_charseq_lens"][train.LEMMAS]
-                feeds[self.lemma_charseq_ids] = batch_dict["batch_charseq_ids"][train.LEMMAS]
 
             self.session.run([self.training, self.summaries["train"]], feeds)
 
@@ -348,7 +263,7 @@ class Network:
         scors = []
         while not dataset.epoch_finished():
             seq2seq = args.decoding == "seq2seq"
-            batch_dict = dataset.next_batch(args.batch_size, args.form_wes_model, args.lemma_wes_model, args.fasttext_model, args.including_charseqs, seq2seq=seq2seq)
+            batch_dict = dataset.next_batch(args.batch_size, args.form_wes_model, args.lemma_wes_model,  args.including_charseqs, seq2seq=seq2seq)
             targets = [self.predictions]
             scores = [self.viterbi_score]
 
@@ -365,24 +280,8 @@ class Network:
                 feeds[self.pretrained_form_wes] = batch_dict["batch_form_pretrained_wes"]
             if args.lemma_wes_model: # pretrained lemma embeddings
                 feeds[self.pretrained_lemma_wes] = batch_dict["batch_lemma_pretrained_wes"]
-            if args.fasttext_model: # fasttext form embeddings
-                feeds[self.pretrained_fasttext_wes] = batch_dict["batch_form_fasttext_wes"]
             if args.bert_embeddings_dev or args.bert_embeddings_test: # BERT embeddings
                 feeds[self.pretrained_bert_wes] = batch_dict["batch_bert_wes"]
-            if args.flair_dev or args.flair_test: # flair embeddings
-                feeds[self.pretrained_flair_wes] = batch_dict["batch_flair_wes"]
-            if args.elmo_dev or args.elmo_test: # elmo embeddings
-                feeds[self.pretrained_elmo_wes] = batch_dict["batch_elmo_wes"]
-
-            if args.including_charseqs: # character-level embeddings
-                feeds[self.form_charseqs] = batch_dict["batch_charseqs"][dataset.FORMS]
-                feeds[self.form_charseq_lens] = batch_dict["batch_charseq_lens"][dataset.FORMS]
-                feeds[self.form_charseq_ids] = batch_dict["batch_charseq_ids"][dataset.FORMS]
-
-                feeds[self.lemma_charseqs] = batch_dict["batch_charseqs"][dataset.LEMMAS]
-                feeds[self.lemma_charseq_lens] = batch_dict["batch_charseq_lens"][dataset.LEMMAS]
-                feeds[self.lemma_charseq_ids] = batch_dict["batch_charseq_ids"][dataset.LEMMAS]
-
 
             tags.extend(self.session.run(targets, feeds)[0])
             scors.extend(self.session.run(scores, feeds)[0])
@@ -426,7 +325,7 @@ class Network:
         tags = []
         while not dataset.epoch_finished():
             seq2seq = args.decoding == "seq2seq"
-            batch_dict = dataset.next_batch(args.batch_size, args.form_wes_model, args.lemma_wes_model, args.fasttext_model, args.including_charseqs, seq2seq=seq2seq)
+            batch_dict = dataset.next_batch(args.batch_size, args.form_wes_model, args.lemma_wes_model, args.including_charseqs, seq2seq=seq2seq)
             targets = [self.predictions]
             train = morpho_dataset.MorphoDataset(args.train_data, max_sentences=args.max_sentences,
                                                  bert_embeddings_filename=args.bert_embeddings_train)
@@ -443,23 +342,8 @@ class Network:
                 feeds[self.pretrained_form_wes] = batch_dict["batch_form_pretrained_wes"]
             if args.lemma_wes_model: # pretrained lemma embeddings
                 feeds[self.pretrained_lemma_wes] = batch_dict["batch_lemma_pretrained_wes"]
-            if args.fasttext_model: # fasttext form embeddings
-                feeds[self.pretrained_fasttext_wes] = batch_dict["batch_form_fasttext_wes"]
             if args.bert_embeddings_dev or args.bert_embeddings_test: # BERT embeddings
                 feeds[self.pretrained_bert_wes] = batch_dict["batch_bert_wes"]
-            if args.flair_dev or args.flair_test: # flair embeddings
-                feeds[self.pretrained_flair_wes] = batch_dict["batch_flair_wes"]
-            if args.elmo_dev or args.elmo_test: # elmo embeddings
-                feeds[self.pretrained_elmo_wes] = batch_dict["batch_elmo_wes"]
-
-            if args.including_charseqs: # character-level embeddings
-                feeds[self.form_charseqs] = batch_dict["batch_charseqs"][dataset.FORMS]
-                feeds[self.form_charseq_lens] = batch_dict["batch_charseq_lens"][dataset.FORMS]
-                feeds[self.form_charseq_ids] = batch_dict["batch_charseq_ids"][dataset.FORMS]
-
-                feeds[self.lemma_charseqs] = batch_dict["batch_charseqs"][dataset.LEMMAS]
-                feeds[self.lemma_charseq_lens] = batch_dict["batch_charseq_lens"][dataset.LEMMAS]
-                feeds[self.lemma_charseq_ids] = batch_dict["batch_charseq_ids"][dataset.LEMMAS]
 
             tags.extend(self.session.run(targets, feeds)[0])
 
@@ -550,9 +434,6 @@ def train_model(model_config):
     if args.lemma_wes_model:
         args.lemma_wes_model = word2vec.load(args.lemma_wes_model)
 
-    # Load fasttext subwords embeddings
-    if args.fasttext_model:
-        args.fasttext_model = fasttext.load_model(args.fasttext_model)
 
     # Character-level embeddings
     args.including_charseqs = (args.cle_dim > 0)
@@ -561,19 +442,17 @@ def train_model(model_config):
     network = Network(threads=args.threads)
     network.construct(args,
                       num_forms=len(train.factors[train.FORMS].words),
-                      num_form_chars=len(train.factors[train.FORMS].alphabet),
+
                       num_lemmas=len(train.factors[train.LEMMAS].words),
-                      num_lemma_chars=len(train.factors[train.LEMMAS].alphabet),
+
                       num_pos=len(train.factors[train.POS].words),
                       pretrained_form_we_dim=args.form_wes_model.vectors.shape[1] if args.form_wes_model else 0,
                       pretrained_lemma_we_dim=args.lemma_wes_model.vectors.shape[1] if args.lemma_wes_model else 0,
-                      pretrained_fasttext_dim=args.fasttext_model.get_dimension() if args.fasttext_model else 0,
+
                       num_tags=len(train.factors[train.TAGS].words),
-                      tag_bos=train.factors[train.TAGS].words_map["<bos>"],
-                      tag_eow=train.factors[train.TAGS].words_map["<eow>"],
+
                       pretrained_bert_dim=train.bert_embeddings_dim(),
-                      pretrained_flair_dim=train.flair_embeddings_dim(),
-                      pretrained_elmo_dim=train.elmo_embeddings_dim(),
+
                       predict_only=args.predict)
 
 
