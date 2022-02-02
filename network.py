@@ -80,43 +80,22 @@ class Network:
         self.session = tf.Session(graph = graph, config=tf.ConfigProto(inter_op_parallelism_threads=threads,
                                                                        intra_op_parallelism_threads=threads))
 
-    def construct(self, args, num_forms,  num_lemmas,  num_pos,
-                  pretrained_form_we_dim, pretrained_lemma_we_dim,
+    def construct(self, args,
                   num_tags,  pretrained_bert_dim,
                   predict_only):
         with self.session.graph.as_default():
 
             # Inputs
             self.sentence_lens =  tf.placeholder(tf.int32, [None], name="sentence_lens")
-            self.form_ids = tf.placeholder(tf.int32, [None, None], name="form_ids")
-            self.lemma_ids = tf.placeholder(tf.int32, [None, None], name="lemma_ids")
-            self.pos_ids = tf.placeholder(tf.int32, [None, None], name="pos_ids")
-            self.pretrained_form_wes = tf.placeholder(tf.float32, [None, None, pretrained_form_we_dim], name="pretrained_form_wes")
-            self.pretrained_lemma_wes = tf.placeholder(tf.float32, [None, None, pretrained_lemma_we_dim], name="pretrained_lemma_wes")
-
             self.pretrained_bert_wes = tf.placeholder(tf.float32, [None, None, pretrained_bert_dim], name="bert_wes")
-
             self.tags = tf.placeholder(tf.int32, [None, None], name="tags")
             self.is_training = tf.placeholder(tf.bool, [])
             self.learning_rate = tf.placeholder(tf.float32, [])
-
             # RNN Cell
 
             rnn_cell = tf.nn.rnn_cell.BasicLSTMCell
 
             inputs = []
-
-            # Trainable embeddings for forms
-            form_embeddings =  tf.get_variable("form_embeddings", shape=[num_forms, args.we_dim], dtype=tf.float32)
-            inputs.append(tf.nn.embedding_lookup(form_embeddings, self.form_ids))
-
-            # Trainable embeddings for lemmas
-            lemma_embeddings = tf.get_variable("lemma_embeddings", shape=[num_lemmas, args.we_dim], dtype=tf.float32)
-            inputs.append(tf.nn.embedding_lookup(lemma_embeddings, self.lemma_ids))
-
-            # POS encoded as one-hot vectors
-            inputs.append(tf.one_hot(self.pos_ids, num_pos))
-
 
             # BERT form embeddings
             if pretrained_bert_dim:
@@ -208,16 +187,9 @@ class Network:
 
             self.session.run(self.reset_metrics)
             feeds = {self.sentence_lens: batch_dict["sentence_lens"],
-                     self.form_ids: batch_dict["word_ids"][train.FORMS],
-                     self.lemma_ids: batch_dict["word_ids"][train.LEMMAS],
-                     self.pos_ids: batch_dict["word_ids"][train.POS],
                      self.tags: batch_dict["word_ids"][train.TAGS],
                      self.is_training: True,
                      self.learning_rate: learning_rate}
-            if args.form_wes_model: # pretrained form embeddings
-                feeds[self.pretrained_form_wes] = batch_dict["batch_form_pretrained_wes"]
-            if args.lemma_wes_model: # pretrained lemma embeddings
-                feeds[self.pretrained_lemma_wes] = batch_dict["batch_lemma_pretrained_wes"]
             if args.bert_embeddings_train: # BERT embeddings
                 feeds[self.pretrained_bert_wes] = batch_dict["batch_bert_wes"]
 
@@ -267,25 +239,14 @@ class Network:
             targets = [self.predictions]
             scores = [self.viterbi_score]
 
-            train = morpho_dataset.MorphoDataset(args.train_data, max_sentences=args.max_sentences,
-                                                 bert_embeddings_filename=args.bert_embeddings_train)
-
             feeds = {self.sentence_lens: batch_dict["sentence_lens"],
-                    self.form_ids: batch_dict["word_ids"][dataset.FORMS],
-                    self.lemma_ids: batch_dict["word_ids"][train.LEMMAS],
-                    self.pos_ids: batch_dict["word_ids"][train.POS],
                     self.is_training: False}
 
-            if args.form_wes_model: # pretrained form embeddings
-                feeds[self.pretrained_form_wes] = batch_dict["batch_form_pretrained_wes"]
-            if args.lemma_wes_model: # pretrained lemma embeddings
-                feeds[self.pretrained_lemma_wes] = batch_dict["batch_lemma_pretrained_wes"]
             if args.bert_embeddings_dev or args.bert_embeddings_test: # BERT embeddings
                 feeds[self.pretrained_bert_wes] = batch_dict["batch_bert_wes"]
 
             tags.extend(self.session.run(targets, feeds)[0])
             scors.extend(self.session.run(scores, feeds)[0])
-
 
         tags_res = []
         scores_res = []
@@ -327,21 +288,12 @@ class Network:
             seq2seq = args.decoding == "seq2seq"
             batch_dict = dataset.next_batch(args.batch_size, args.form_wes_model, args.lemma_wes_model, args.including_charseqs, seq2seq=seq2seq)
             targets = [self.predictions]
-            train = morpho_dataset.MorphoDataset(args.train_data, max_sentences=args.max_sentences,
-                                                 bert_embeddings_filename=args.bert_embeddings_train)
 
             feeds = {self.sentence_lens: batch_dict["sentence_lens"],
-                    self.form_ids: batch_dict["word_ids"][dataset.FORMS],
-                    self.lemma_ids: batch_dict["word_ids"][train.LEMMAS],
-                    self.pos_ids: batch_dict["word_ids"][train.POS],
                     self.is_training: False}
             if evaluating:
                 targets.extend([self.update_accuracy, self.update_loss])
                 feeds[self.tags] = batch_dict["word_ids"][dataset.TAGS]
-            if args.form_wes_model: # pretrained form embeddings
-                feeds[self.pretrained_form_wes] = batch_dict["batch_form_pretrained_wes"]
-            if args.lemma_wes_model: # pretrained lemma embeddings
-                feeds[self.pretrained_lemma_wes] = batch_dict["batch_lemma_pretrained_wes"]
             if args.bert_embeddings_dev or args.bert_embeddings_test: # BERT embeddings
                 feeds[self.pretrained_bert_wes] = batch_dict["batch_bert_wes"]
 
@@ -441,13 +393,7 @@ def train_model(model_config):
     # Construct the network
     network = Network(threads=args.threads)
     network.construct(args,
-                      num_forms=len(train.factors[train.FORMS].words),
 
-                      num_lemmas=len(train.factors[train.LEMMAS].words),
-
-                      num_pos=len(train.factors[train.POS].words),
-                      pretrained_form_we_dim=args.form_wes_model.vectors.shape[1] if args.form_wes_model else 0,
-                      pretrained_lemma_we_dim=args.lemma_wes_model.vectors.shape[1] if args.lemma_wes_model else 0,
 
                       num_tags=len(train.factors[train.TAGS].words),
 
