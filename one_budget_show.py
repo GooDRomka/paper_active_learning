@@ -78,10 +78,10 @@ def random_color():
 if __name__ == '__main__':
     directory_report = "report/active_b/"
     shutil.rmtree(directory_report)
-    Title = {"1":"lazy,LC,0.5","2":"self,LC,0","3":"active,LC",
-         "4":"lazy,LC,0.25","5":"lazy,LC,0.75","6":"lazy,RAND,0.75",
+    Title = {"1":"lazy,LC,0.5", "2":"self,LC,0", "3":"active,LC",
+         "4":"lazy,LC,0.25", "5":"lazy,LC,0.75", "6":"lazy,RAND,0.75",
          "7":"self,RAND,0", "8":"lazy,LC,0.5,dif step", "9":"self paper 0,9975",
-                 "10":"self paper 0,99"}
+                 "10":"self paper 0,99", "11":"self paper 0,995","12":"self paper 0,95"}
     scale = 1
     i = 2000
     # added_price_i = False
@@ -91,7 +91,7 @@ if __name__ == '__main__':
                 plt.style.use('ggplot')
                 plt.figure(figsize=(22,16))
                 j=0
-                for num in ['1','2','3','4','5','6','7','9','10']:
+                for num in ['1','2','3','4','5','6','7','9','10','11','12']:
                     model_config = ModelConfig()
                     path_active = "logs/cluster/log_exp_" + num + ".txt"
                     if not os.path.exists(directory_report):
