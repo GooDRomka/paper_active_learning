@@ -86,7 +86,7 @@ if __name__ == '__main__':
     i = 2000
     # added_price_i = False
     for added_price_i in [False]:
-        for scale in [1,0.5,0.4,0.2,0.1]:
+        for scale in [1]:
             for i in [1200,2000,4000]:
                 plt.style.use('ggplot')
                 plt.figure(figsize=(22,16))

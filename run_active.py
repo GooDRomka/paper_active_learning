@@ -24,15 +24,25 @@ dev_file = '/mnt/nfs-storage/data/english/valid.txt'
 train_vectors = "/mnt/nfs-storage/data/english/embeding/train_vectors_lists.txt"
 test_vectors = "/mnt/nfs-storage/data/english/embeding/test_vectors_lists.txt"
 dev_vectors = "/mnt/nfs-storage/data/english/embeding/dev_vectors_lists.txt"
+
 vocab = '/mnt/nfs-storage/data/english/vocab.txt'
+
+model_config = ModelConfig()
+train_file = './data/english/train.txt'
+test_file = './data/english/test.txt'
+dev_file = './data/english/valid.txt'
+train_vectors = "./data/english/embeding/train_vectors_lists.txt"
+test_vectors = "./data/english/embeding/test_vectors_lists.txt"
+dev_vectors = "./data/english/embeding/dev_vectors_lists.txt"
+vocab = './data/english/vocab.txt'
 
 train = load_data(train_file, train_vectors)
 dev = load_data(dev_file, dev_vectors)
 test = load_data(test_file, test_vectors)
 
-os.makedirs("/mnt/nfs-storage/logs/active"+str(exp_type)+"/", exist_ok=True)
-number = find_new_number("/mnt/nfs-storage/logs/active"+str(exp_type)+"/")
-model_config.loginfo = "/mnt/nfs-storage/logs/active"+str(exp_type)+"/" + number + "_loginfo.csv"
+os.makedirs("./logs/active"+str(exp_type)+"/", exist_ok=True)
+number = find_new_number("./logs/active"+str(exp_type)+"/")
+model_config.loginfo = "./logs/active"+str(exp_type)+"/" + number + "_loginfo.csv"
 
 model_config.number = number
 model_config.save_model_path = "saved_models/active_model.pth"
@@ -297,6 +307,30 @@ elif exp_type == 10:
 
                     start_active_learning(train, dev, test, model_config)
 
+elif exp_type == 11:
+    # self learning rand 0995
+    params = [
+          [STRATEGY.SELF, STRATEGY.LAZY, 2000, 8000,  0, 0.995],
+          [STRATEGY.SELF, STRATEGY.LAZY, 1200, 8000,  0, 0.995],
+          [STRATEGY.SELF, STRATEGY.LAZY, 2400, 8000,  0, 0.995],
+          [STRATEGY.SELF, STRATEGY.LAZY, 4000, 8000,  0, 0.995],
+          [STRATEGY.SELF, STRATEGY.LAZY, 1600, 8000,  0, 0.995],
+          ]
+    for i in range(5):
+        for param in params:
+            for j in range(2):
+                seed += 1
+                if seed<process*((10*len(params))//model_config.process) and seed>=(process-1)*((10*len(params))//model_config.process):
+                    model_config.save_model_path = "saved_models/active_model"+str(process)+".pth"
+                    model_config.select_strategy, model_config.label_strategy, model_config.init_budget, model_config.budget, model_config.threshold, model_config.self_threshold = param
+                    model_config.seed = seed
+                    model_config.step_budget = 500
+                    model_config.stop_criteria_steps = 14
+                    stat_in_file(model_config.loginfo, ["\n\n"])
+                    stat_in_file(model_config.loginfo, ['BEGIN', 'selecting_strategy', model_config.select_strategy, 'labeling_strategy', model_config.label_strategy, 'budget', model_config.budget, 'init_budget', model_config.init_budget, 'step_budget', model_config.step_budget,
+                                    'threshold', model_config.threshold,  "lr", model_config.learning_rate,"batch_size", model_config.batch_size, 'seed', model_config.seed ])
+
+                    start_active_learning(train, dev, test, model_config)
 
 print("Ya vse")
 
