@@ -318,7 +318,6 @@ def active_learing_sampling(model, dataPool, model_config, args,train_m, train, 
     small_unselected_ids, small_unselected_texts, small_unselected_labels = dataPool.get_unselected_small(model_config.step_budget)
     unselected_ids = dataPool.get_unselected_id()
     print(len(unselected_ids), len(small_unselected_ids), max(small_unselected_ids))
-    # exit()
     small_unselected_embedings, _ = get_embeding( np.array(unselected_ids)[small_unselected_ids], small_unselected_labels,
                                                             train['embed'])
     tobe_selected_idxs  = None
@@ -359,7 +358,7 @@ def active_learing_sampling(model, dataPool, model_config, args,train_m, train, 
             cost = len(small_unselected_embedings[id])
             if price + cost > min(model_config.step_budget, model_config.budget - sum_prices):
                 end_marker = True
-                break
+                # break
             else:
                 tobe_selected_idxs.append(id)
                 price += cost

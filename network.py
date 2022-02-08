@@ -414,5 +414,5 @@ def train_model(model_config):
     print("testf1 {}".format(test_score))
 
     shutil.rmtree(args.logdir)
-    return network, args, train, precision, recall, test_score
+    return network, args, train, test_score, precision, recall
 
