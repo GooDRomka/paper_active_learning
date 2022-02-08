@@ -150,6 +150,19 @@ class ActiveStrategy(object):
         return tobe_selected_idxs, tobe_selected_scores
 
     @classmethod
+    def mc_sampling(cls, viterbi_scores, texts, select_num):
+        """
+        Least Confidence
+        """
+        select_num = select_num if len(texts) >= select_num else len(texts)
+        seq_lens = np.array([len(text) for text in texts])
+        scores = np.array(viterbi_scores)
+        scores = scores/seq_lens
+        tobe_selected_idxs = np.argsort(scores)[::-1][:select_num]
+        tobe_selected_scores = scores[tobe_selected_idxs]
+        return tobe_selected_idxs, tobe_selected_scores
+
+    @classmethod
     def mnlp_sampling(cls, mnlp_scores, texts, select_num):
 
         select_num = select_num if len(texts) >= select_num else len(texts)
@@ -316,6 +329,11 @@ def active_learing_sampling(model, dataPool, model_config, args,train_m, train, 
         tobe_selected_idxs, tobe_selected_scores = ActiveStrategy.lc_sampling(scores, small_unselected_embedings,
                                                                               model_config.step_budget)
 
+    elif model_config.select_strategy == STRATEGY.MC:
+        dataset = create_temp_dataset(model_config, train_m, small_unselected_texts, small_unselected_embedings, small_unselected_labels)
+        tags, scores = model.get_tags(dataset, args)
+        tobe_selected_idxs, tobe_selected_scores = ActiveStrategy.mc_sampling(scores, small_unselected_embedings,
+                                                                              model_config.step_budget)
     elif model_config.select_strategy == STRATEGY.RAND:
         tobe_selected_idxs = ActiveStrategy.random_sampling(small_unselected_embedings,
                                                             model_config.step_budget)

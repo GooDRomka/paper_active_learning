@@ -193,6 +193,8 @@ class Network:
             self.predict(dataset_name, dataset, args, prediction_file, evaluating=True)
 
         f1 = 0.0
+        pr = 0.0
+        re = 0.0
         if args.corpus in ["CoNLL_en", "CoNLL_de", "CoNLL_nl", "CoNLL_es"]:
             os.system("cd {} && ../../run_conlleval.sh {} {} {}_system_predictions.conll".format(args.logdir, dataset_name, args.__dict__[dataset_name + "_data"], dataset_name))
 
@@ -201,9 +203,11 @@ class Network:
                     line = line.strip("\n")
                     if line.startswith("accuracy:"):
                         f1 = float(line.split()[-1])
+                        re = float(line.split()[-3][:-2])
+                        pr = float(line.split()[-5][:-2])
                         self.session.run(self.metrics_summarize["F1"][dataset_name], {self.metrics["F1"]: f1})
 
-            return f1, f1, f1
+            return pr, re, f1
         elif args.corpus in [ "ACE2004", "ACE2005", "GENIA" ]: # nested named entities evaluation
             os.system("cd {} && ../../run_eval_nested.sh {} {}".format(args.logdir, dataset_name, os.path.dirname(args.__dict__[dataset_name + "_data"])))
 
