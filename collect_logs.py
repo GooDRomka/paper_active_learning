@@ -35,7 +35,12 @@ try:
 except Exception:
     pass
 
-
+# Title = {"1":"lazy active learning, LC, threshold 0.5","2":"self learning,LC, threshold 0","3":"active learning, LC",
+#          "4":"lazy active learning, LC, threshold 0.25","5":"lazy active learning, LC, threshold 0.75","6":"lazy active learning,RAND, threshold 0.75",
+#          "7":"self learning, RAND, threshold 0", "8":"lazy active learning, LC, threshold 0.5, dif step", "9":"self learning paper version 0,9975",
+#          "10":"self learning paper version 0,99", "11":"self learning paper version 0,995",
+#          "12":"self learning paper version 0,95","13":"self learning paper version 0,8",
+#          "14":"self learning paper version 0,5"}
 for num in ['','2','3','4','5','6','7','8','9','10','11','12','13','14']:
     for filename in os.listdir(direct_path+num+"/"):
         if num == "":

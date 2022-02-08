@@ -77,10 +77,10 @@ def random_color():
 if __name__ == '__main__':
     directory_report = "report/active/"
     shutil.rmtree(directory_report)
-    for num in ['1','2','3','4','5','6','7','8','9','10','11','12','13','14']:
+    for num in ['1']:
         model_config = ModelConfig()
 
-        path_active = "logs/cluster/log_exp_" + num + ".txt"
+        path_active = "logs/clusterDialog/log_exp_" + num + ".txt"
         if not os.path.exists(directory_report):
             os.makedirs(directory_report)
         new_plot_num = find_new_number(directory_report)
