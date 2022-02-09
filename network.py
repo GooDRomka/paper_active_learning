@@ -217,12 +217,14 @@ class Network:
                 log_likelihood, transition_params = tf.contrib.crf.crf_log_likelihood(
                     output_layer, self.tags, self.sentence_lens)
                 loss = tf.reduce_mean(-log_likelihood)
-                self.predictions, _ = tf.contrib.crf.crf_decode(
+                self.predictions, self.viterbi_score  = tf.contrib.crf.crf_decode(
                     output_layer, transition_params, self.sentence_lens)
+                self.viterbi_score = self.viterbi_score/tf.cast( self.sentence_lens, tf.float32)
 
-                seq_score, _ = tf.contrib.crf.crf_log_likelihood(
-                    output_layer, self.predictions, self.sentence_lens, transition_params)
-                self.viterbi_score = seq_score/tf.cast( self.sentence_lens, tf.float32)
+                # seq_score, _ = tf.contrib.crf.crf_log_likelihood(
+                #     output_layer, self.predictions, self.sentence_lens, transition_params)
+                # self.viterbi_score = seq_score/tf.cast( self.sentence_lens, tf.float32)
+
                 self.predictions_training = self.predictions
 
 

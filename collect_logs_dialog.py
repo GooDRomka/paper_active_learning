@@ -1,6 +1,6 @@
 
 import os
-
+import glob
 #
 # for exp in ["1","2","3"]:
 #     direct_path = "res_from_cluster/logs/active"+exp+"/"
@@ -12,10 +12,10 @@ import os
 #         with open(output, "a") as fw, open(input,"r") as fr: fw.writelines(l for l in fr)
 
 def bad_files(num,name):
-    # if name[0]=="0":
-    #     name = float(name[1])
-    # else:
-    #     name = float(name)
+    if name[0]=="0":
+        name = float(name[1])
+    else:
+        name = float(name)
     if num=="1" and name in [1,2]:
         return True
     # if num=="9" and name<=30:
@@ -30,10 +30,13 @@ def bad_files(num,name):
 
 direct_path = "res_from_cluster_dialog/logsDialog/active"
 output = "./logs/clusterDialog/log_exp_"
-try:
-    os.remove(direct_path)
-except Exception:
-    pass
+
+
+
+files = glob.glob('./logs/clusterDialog/*')
+
+for f in files:
+    os.remove(f)
 
 
 for num in ['1']:
@@ -41,4 +44,5 @@ for num in ['1']:
         if not bad_files(num,filename[:2]):
             input = direct_path+num+"/"+filename
             print(" ", input)
-            with open(output+num+".txt", "a") as fw, open(input,"r") as fr: fw.writelines(l for l in fr)
+            with open(output+num+".txt", "a") as fw, open(input,"r") as fr:
+                fw.writelines(l for l in fr)

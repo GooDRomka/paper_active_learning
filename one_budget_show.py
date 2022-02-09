@@ -82,31 +82,41 @@ def random_color():
 if __name__ == '__main__':
     directory_report = "report/active_b/"
     shutil.rmtree(directory_report)
-    Title = {"1":"lazy,LC,0.5", "2":"self,LC,0", "3":"active,LC",
-         "4":"lazy,LC,0.25", "5":"lazy,LC,0.75", "6":"lazy,RAND,0.75",
-         "7":"self,RAND,0", "8":"lazy,LC,0.5,dif step", "9":"self paper 0,9975",
-                 "10":"self paper 0,99", "11":"self paper 0,995","12":"self paper 0,95",
-             "13":"self paper 0,8","14":"self paper 0,5"}
+    Title = {"1":"active,LC",
+             "2":"lazy,LC,0.75",
+             "3":"lazy,RAND,0.75",
+             "4":"lazy,MC,0.75",
+             "5":"lazy,LC,0.5",
+             "6":"lazy,LC,0.25",
+             "7":"self,LC,0",
+             "8":"self,RAND,0",
+             "9":"self,MC,0",
+             "10":"self paper 0,5",
+             "11":"self paper 0,995",
+             "12":"self paper 0,999",
+             "13":"self paper 0,8",
+             "14":"<>"}
     scale = 1
     i = 2000
     # added_price_i = False
-    for metric in ['bestprecisiondev', 'bestf1dev', 'devrecall']:
-        for added_price_i in [False]:
+    for metric in ['bestprecisiondev', 'bestf1dev', 'bestrecalldev']:
+        for added_price_i in [False, True]:
             for scale in [1]:
-                for i in [2000]:
+                for i in [800,2000]:
                     plt.style.use('ggplot')
                     plt.figure(figsize=(22,16))
                     j=0
-                    for num in ['1','2','3','4','5','6','7','9','10','11','12','13','14']:
+                    # for num in ['1','2','3','4','5','6','7','9','10','11','12','13']:
+                    for num in ['1']:
                         model_config = ModelConfig()
-                        path_active = "logs/cluster/log_exp_" + num + ".txt"
+                        path_active = "logs/clusterDialog/log_exp_" + num + ".txt"
                         if not os.path.exists(directory_report):
                             os.makedirs(directory_report)
                         new_plot_num = find_new_number(directory_report)
 
                         path_simple = "logs/simple/paper_simple_learning_dev.csv"
                         experiments = read_file_simple(path_simple)
-                        # print(experiments)
+
                         experiments_simple = experiments.groupby('budget', as_index=False).agg({'f1': ['mean', 'std']})
 
                         colors = [[0, 0.4470, 0.7410],[0, 0, 1],[0.8500, 0.3250, 0.0980],[0, 0.5, 0],[1, 0, 0],[0.4940, 0.1840, 0.5560],[0, 0.75, 0.75],
@@ -121,6 +131,7 @@ if __name__ == '__main__':
                         iterations = pd.DataFrame(iterations)
 
                         iterations = iterations.groupby(['budget', 'init_budget','step_budget', 'spent_budget'],as_index=False).agg({'added_price': ['mean','std'],'bestf1dev': ['mean','std'], 'bestprecisiondev': ['mean','std'], 'bestrecalldev': ['mean','std']})
+
                         experiments = experiments.groupby(['budget','init_budget','step_budget']).agg(
                             {'devf1': ['mean', 'std'], 'devprecision': ['mean', 'std'], 'devrecall': ['mean', 'std']})
                         init_budget, budget, step_budget = pd.unique(iterations['init_budget']),pd.unique(iterations['budget']),pd.unique(iterations['step_budget'])
@@ -129,13 +140,11 @@ if __name__ == '__main__':
                             filt = max(budget)*scale+max(init_budget)+1000
 
                             experiments_simple_filt = experiments_simple[experiments_simple['budget']<=filt]
-
                             plt.plot(experiments_simple_filt['budget'], experiments_simple_filt[('f1','mean')],label="simple", marker="o", color="black")
                             plt.fill_between(experiments_simple_filt['budget'],experiments_simple_filt[('f1','mean')]+experiments_simple_filt[('f1','std')],experiments_simple_filt[('f1','mean')]- experiments_simple_filt[('f1','std')],alpha=.2)
 
 
                         df = iterations[iterations['init_budget']==i]
-
 
                         if added_price_i:
                             plt.plot(df['spent_budget'], df[('added_price', 'mean')], label=Title[num], marker="o", color=colors[j])
@@ -146,6 +155,7 @@ if __name__ == '__main__':
                         j+=1
 
                         # plt.errorbar(df['spent_budget'],df[('bestf1dev','mean')], df[('bestf1dev','std')], linestyle='None', marker='^')
+
 
 
 
