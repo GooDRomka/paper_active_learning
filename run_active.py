@@ -18,21 +18,21 @@ exp_type = int(exp_type)
 process = int(processN)
 
 model_config = ModelConfig()
-train_file = './data/english/train.txt'
-test_file = './data/english/test.txt'
-dev_file = './data/english/valid.txt'
-train_vectors = "./data/english/embeding/train_vectors_lists.txt"
-test_vectors = "./data/english/embeding/test_vectors_lists.txt"
-dev_vectors = "./data/english/embeding/dev_vectors_lists.txt"
-vocab = './data/english/vocab.txt'
+train_file = '/mnt/nfs-storage/data/english/train.txt'
+test_file = '/mnt/nfs-storage/data/english/test.txt'
+dev_file = '/mnt/nfs-storage/data/english/valid.txt'
+train_vectors = "/mnt/nfs-storage/data/english/embeding/train_vectors_lists.txt"
+test_vectors = "/mnt/nfs-storage/data/english/embeding/test_vectors_lists.txt"
+dev_vectors = "/mnt/nfs-storage/data/english/embeding/dev_vectors_lists.txt"
+vocab = '/mnt/nfs-storage/data/english/vocab.txt'
 
 train = load_data(train_file, train_vectors)
 dev = load_data(dev_file, dev_vectors)
 test = load_data(test_file, test_vectors)
 
-os.makedirs("./logsDialog/active"+str(exp_type)+"/", exist_ok=True)
-number = find_new_number("./logsDialog/active"+str(exp_type)+"/")
-model_config.loginfo = "./logsDialog/active"+str(exp_type)+"/" + number + "_loginfo.csv"
+os.makedirs("/mnt/nfs-storage/logsDialog/active"+str(exp_type)+"/", exist_ok=True)
+number = find_new_number("/mnt/nfs-storage/logsDialog/active"+str(exp_type)+"/")
+model_config.loginfo = "/mnt/nfs-storage/logsDialog/active"+str(exp_type)+"/" + number + "_loginfo.csv"
 
 model_config.number = number
 model_config.save_model_path = "saved_models/active_model.pth"
