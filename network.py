@@ -100,7 +100,6 @@ class Network:
             self.tags = tf.placeholder(tf.int32, [None, None], name="tags")
             self.is_training = tf.placeholder(tf.bool, [])
             self.learning_rate = tf.placeholder(tf.float32, [])
-
             if args.including_charseqs:
                 self.form_charseqs = tf.placeholder(tf.int32, [None, None], name="form_charseqs")
                 self.form_charseq_lens = tf.placeholder(tf.int32, [None], name="form_charseq_lens")

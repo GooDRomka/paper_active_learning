@@ -66,7 +66,7 @@ if exp_type == 1:
 
 elif exp_type == 2:
     #  lazy active learning LC 0.75
-    params = [[STRATEGY.LC, STRATEGY.LAZY, 2000, 8000, 0.75],
+    params = [[STRATEGY.LC, STRATEGY.LAZY, 800, 8000, 0.75],
           [STRATEGY.LC, STRATEGY.LAZY, 2000, 8000,  0.75],
           [STRATEGY.LC, STRATEGY.LAZY, 4000, 8000,  0.75],
           [STRATEGY.LC, STRATEGY.LAZY, 1200, 8000,  0.75],
@@ -293,10 +293,10 @@ elif exp_type == 11:
 elif exp_type == 12:
     # self learning paper 0999
     params = [
-          [STRATEGY.SELF, STRATEGY.LAZY, 2000, 8000,  0, 0.999],
+          [STRATEGY.SELF, STRATEGY.LAZY, 800, 8000,  0, 0.999],
           [STRATEGY.SELF, STRATEGY.LAZY, 1200, 8000,  0, 0.999],
           [STRATEGY.SELF, STRATEGY.LAZY, 4000, 8000,  0, 0.999],
-          [STRATEGY.SELF, STRATEGY.LAZY, 800, 8000,  0, 0.999],
+          [STRATEGY.SELF, STRATEGY.LAZY, 2000, 8000,  0, 0.999],
           ]
     for i in range(5):
         for param in params:
@@ -316,10 +316,10 @@ elif exp_type == 12:
 elif exp_type == 13:
     # self learning paper 08
     params = [
-          [STRATEGY.SELF, STRATEGY.LAZY, 2000, 8000,  0, 0.8],
+          [STRATEGY.SELF, STRATEGY.LAZY, 800, 8000,  0, 0.8],
           [STRATEGY.SELF, STRATEGY.LAZY, 1200, 8000,  0, 0.8],
           [STRATEGY.SELF, STRATEGY.LAZY, 4000, 8000,  0, 0.8],
-          [STRATEGY.SELF, STRATEGY.LAZY, 800, 8000,  0, 0.8],
+          [STRATEGY.SELF, STRATEGY.LAZY, 2000, 8000,  0, 0.8],
           ]
     for i in range(5):
         for param in params:
