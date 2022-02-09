@@ -51,7 +51,7 @@ class DataPool(object):
     def get_unselected_small(self, num):
         num = round(num)
         if num >= len(self.unselected_idx):
-            return list(range(len(self.unselected_idx))), self.unselected_texts, self.unselected_labels
+            return self.unselected_idx, self.unselected_texts, self.unselected_labels
         idxs = list(range(len(self.unselected_idx)))
         small_unselected_idx = sorted(random.sample(idxs, num))
         small_unselected_labels = self.unselected_labels[small_unselected_idx]
@@ -315,9 +315,8 @@ def create_temp_dataset(model_config, train_m,  texts, embedings, labels ):
     return dataset
 
 def active_learing_sampling(model, dataPool, model_config, args,train_m, train, sum_prices, iterations_of_learning):
-    small_unselected_ids, small_unselected_texts, small_unselected_labels = dataPool.get_unselected_small(model_config.step_budget)
     unselected_ids = dataPool.get_unselected_id()
-    print(len(unselected_ids), len(small_unselected_ids), max(small_unselected_ids))
+    small_unselected_ids, small_unselected_texts, small_unselected_labels = dataPool.get_unselected_small(model_config.step_budget)
     small_unselected_embedings, _ = get_embeding( np.array(unselected_ids)[small_unselected_ids], small_unselected_labels,
                                                             train['embed'])
     tobe_selected_idxs  = None

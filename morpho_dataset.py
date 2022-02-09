@@ -225,7 +225,7 @@ class MorphoDataset:
 
         return self._factors
 
-    def next_batch(self, batch_size):
+    def next_batch(self, batch_size, form_wes_model, lemma_wes_model, fasttext_model, including_charseqs=False, seq2seq=False):
         """Return the next batch.
         Arguments:
         including_charseqs: if True, also batch_charseq_ids, batch_charseqs and batch_charseq_lens are returned
@@ -256,7 +256,7 @@ class MorphoDataset:
         batch_size = min(batch_size, len(self._permutation))
         batch_perm = self._permutation[:batch_size]
         self._permutation = self._permutation[batch_size:]
-        return self._next_batch(batch_perm)
+        return self._next_batch(batch_perm, form_wes_model, lemma_wes_model, fasttext_model, including_charseqs, seq2seq)
 
     def epoch_finished(self):
         if len(self._permutation) == 0:
@@ -282,7 +282,7 @@ class MorphoDataset:
         else:
             return 0
 
-    def _next_batch(self, batch_perm):
+    def _next_batch(self, batch_perm, form_wes_model, lemma_wes_model, fasttext_model, including_charseqs, seq2seq=False):
         batch_size = len(batch_perm)
         batch_dict = dict()
 
@@ -290,17 +290,73 @@ class MorphoDataset:
         batch_sentence_lens = self._sentence_lens[batch_perm]
         max_sentence_len = np.max(batch_sentence_lens)
 
+        if seq2seq:
+            batch_tag_lens = self._tag_lens[batch_perm]
+            max_tag_len = np.max(batch_tag_lens)
 
         # Word-level data
         batch_word_ids = []
+        batch_word_wes = []
         for f in range(self.FACTORS):
             factor = self._factors[f]
-            batch_word_ids.append(np.zeros([batch_size, max_sentence_len], np.int32))
-            for i in range(batch_size):
-                batch_word_ids[-1][i, 0:batch_sentence_lens[i]] = factor.word_ids[batch_perm[i]]
+            if f == self.TAGS and seq2seq:
+                batch_word_ids.append(np.zeros([batch_size, max_tag_len], np.int32))
+                for i in range(batch_size):
+                    batch_word_ids[-1][i, 0:batch_tag_lens[i]] = factor.word_ids[batch_perm[i]]
+            else:
+                batch_word_ids.append(np.zeros([batch_size, max_sentence_len], np.int32))
+                for i in range(batch_size):
+                    batch_word_ids[-1][i, 0:batch_sentence_lens[i]] = factor.word_ids[batch_perm[i]]
 
         batch_dict["sentence_lens"] = self._sentence_lens[batch_perm]
         batch_dict["word_ids"] = batch_word_ids
+
+        # Character-level data
+        if including_charseqs: 
+            batch_charseq_ids, batch_charseqs, batch_charseq_lens = [], [], []
+
+            for f in range(self.FACTORS):
+                if not (f == self.TAGS and seq2seq):
+                    factor = self._factors[f]
+                    batch_charseq_ids.append(np.zeros([batch_size, max_sentence_len], np.int32))
+                    charseqs_map = {}
+                    charseqs = []
+                    charseq_lens = []
+                    for i in range(batch_size):
+                        for j, charseq_id in enumerate(factor.charseq_ids[batch_perm[i]]):
+                            if charseq_id not in charseqs_map:
+                                charseqs_map[charseq_id] = len(charseqs)
+                                charseqs.append(factor.charseqs[charseq_id])
+                            batch_charseq_ids[-1][i, j] = charseqs_map[charseq_id]
+
+                    batch_charseq_lens.append(np.array([len(charseq) for charseq in charseqs], np.int32))
+                    batch_charseqs.append(np.zeros([len(charseqs), np.max(batch_charseq_lens[-1])], np.int32))
+                    for i in range(len(charseqs)):
+                        batch_charseqs[-1][i, 0:len(charseqs[i])] = charseqs[i]
+            batch_dict["batch_charseq_ids"] = batch_charseq_ids
+            batch_dict["batch_charseqs"] = batch_charseqs
+            batch_dict["batch_charseq_lens"] = batch_charseq_lens
+
+        # Pretrained word embeddings for forms
+        if form_wes_model:
+            we_size = form_wes_model.vectors.shape[1] # get pretrained WEs dimension
+            pretrained_wes = np.zeros([batch_size, max_sentence_len, we_size], np.float32)
+            for i in range(batch_size):
+                for j, word in enumerate(self._factors[self.FORMS].strings[batch_perm[i]]):
+                    if word in form_wes_model:
+                        pretrained_wes[i, j] = form_wes_model[word]
+                    elif word.lower() in form_wes_model:
+                        pretrained_wes[i, j] = form_wes_model[word.lower()]
+            batch_dict["batch_form_pretrained_wes"] = pretrained_wes 
+
+        # Fasttext word embeddings for forms
+        if fasttext_model:
+            we_size = fasttext_model.get_dimension() # get pretrained WEs dimension
+            fasttext_wes = np.zeros([batch_size, max_sentence_len, we_size], np.float32)
+            for i in range(batch_size):
+                for j, word in enumerate(self._factors[self.FORMS].strings[batch_perm[i]]):
+                    fasttext_wes[i, j] = fasttext_model.get_word_vector(word)
+            batch_dict["batch_form_fasttext_wes"] = fasttext_wes 
 
         # Pretrained BERT embeddings for forms
         if self._bert_embeddings:
@@ -312,6 +368,30 @@ class MorphoDataset:
                     batch_bert_embeddings[i, :self._bert_embeddings[batch_perm[i]].shape[0]] = self._bert_embeddings[batch_perm[i]]
             batch_dict["batch_bert_wes"] = batch_bert_embeddings
             
+        # Pretrained flair embeddings for forms
+        if self._flair_embeddings:
+            we_size = self.flair_embeddings_dim()
+            batch_flair_embeddings = np.zeros([batch_size, max_sentence_len, we_size], np.float32)
+            for i in range(batch_size):
+                batch_flair_embeddings[i, :self._flair_embeddings[batch_perm[i]].shape[0]] = self._flair_embeddings[batch_perm[i]]
+            batch_dict["batch_flair_wes"] = batch_flair_embeddings
 
+        # Pretrained elmo embeddings for forms
+        if self._elmo_embeddings:
+            we_size = self.elmo_embeddings_dim()
+            batch_elmo_embeddings = np.zeros([batch_size, max_sentence_len, we_size], np.float32)
+            for i in range(batch_size):
+                batch_elmo_embeddings[i, :self._elmo_embeddings[batch_perm[i]].shape[0]] = self._elmo_embeddings[batch_perm[i]]
+            batch_dict["batch_elmo_wes"] = batch_elmo_embeddings
+
+        # Pretrained word embeddings for lemmas
+        if lemma_wes_model:
+            we_size = lemma_wes_model.vectors.shape[1] # get pretrained WEs dimension
+            pretrained_wes = np.zeros([batch_size, max_sentence_len, we_size], np.float32)
+            for i in range(batch_size):
+                for j, word in enumerate(self._factors[self.LEMMAS].strings[batch_perm[i]]):
+                    if word in lemma_wes_model:
+                        pretrained_wes[i, j] = lemma_wes_model[word]
+            batch_dict["batch_lemma_pretrained_wes"] = pretrained_wes 
 
         return batch_dict

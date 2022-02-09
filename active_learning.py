@@ -27,11 +27,8 @@ def start_active_learning(train, dev, test, model_config):
     embedings, labels = get_embeding( selected_ids, selected_labels, train['embed'])
     X_train, X_dev, y_train, y_dev = train_test_split(list(range(len(labels))), list(range(len(labels))), test_size=0.2, random_state=42)
 
-    train_texts, train_embed, train_labels = [selected_texts[i] for i in X_train], [embedings[i] for i in X_train], [selected_labels[i] for i in X_train]
-    dev_texts, dev_embed, dev_labels = [selected_texts[i] for i in X_dev], [embedings[i] for i in X_dev],[selected_labels[i] for i in X_dev]
-    dev_init_ids = [selected_ids[i] for i in X_dev]
-    get_conll_file("train", model_config, train_texts, train_embed, train_labels)
-    get_conll_file("dev", model_config, dev_texts, dev_embed, dev_labels)
+    get_conll_file("train", model_config, [selected_texts[i] for i in X_train], [embedings[i] for i in X_train], [selected_labels[i] for i in X_train])
+    get_conll_file("dev", model_config, [selected_texts[i] for i in X_dev], [embedings[i] for i in X_dev], [selected_labels[i] for i in X_dev])
     get_conll_file("test", model_config, dev['texts'], dev['embed'], dev['labels'])
 
 
@@ -45,34 +42,22 @@ def start_active_learning(train, dev, test, model_config):
 
     ### активка цикл
     end_marker, iterations_of_learning, sum_prices, sum_perfect, sum_changed, sum_not_changed, sum_not_perfect, perfect, not_perfect, changed, not_changed, thrown_away, price = False, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
-
     while (selected_texts is None) or sum_prices < model_config.budget - 10 and not end_marker:
         iterations_of_learning += 1
-        if model_config.select_strategy==STRATEGY.SELF:
-            model_config.step_budget=20000000
-            model_config.budget=20000000
+
         ### выбрать несколько примеров с помощью активки и разметить их
         dataPool, price, perfect, not_perfect, sum_prices = active_learing_sampling(network, dataPool, model_config, args, train_m, train, sum_prices, iterations_of_learning)
         selected_texts, selected_labels = dataPool.get_selected()
         selected_ids = dataPool.get_selected_id()
-        if model_config.select_strategy == STRATEGY.SELF and price == 0:
-            end_marker = True
-            break
+
         embedings, labels = get_embeding(selected_ids, selected_labels, train['embed'])
-
-        if model_config.select_strategy == STRATEGY.NORMAL:
-            X_train, X_dev, y_train, y_dev = train_test_split(list(range(len(labels))), list(range(len(labels))),
+        X_train, X_dev, y_train, y_dev = train_test_split(list(range(len(labels))), list(range(len(labels))),
                                                           test_size=0.2, random_state=42)
-            train_texts,train_embed,train_labels = [selected_texts[i] for i in X_train], [embedings[i] for i in X_train], [selected_labels[i] for i in X_train]
-            dev_texts,dev_embed,dev_labels = [selected_texts[i] for i in X_dev], [embedings[i] for i in X_dev],[selected_labels[i] for i in X_dev]
-        else:
-            for i in X_train:
-                if selected_labels[i] in dev_init_ids:
-                    del X_train[X_train.index(i)]
-            train_texts,train_embed,train_labels = [selected_texts[i] for i in X_train], [embedings[i] for i in X_train], [selected_labels[i] for i in X_train]
 
-        get_conll_file("train", model_config, train_texts, train_embed, train_labels)
-        get_conll_file("dev", model_config, dev_texts, dev_embed, dev_labels)
+        get_conll_file("train", model_config, [selected_texts[i] for i in X_train], [embedings[i] for i in X_train],
+                       [selected_labels[i] for i in X_train])
+        get_conll_file("dev", model_config, [selected_texts[i] for i in X_dev], [embedings[i] for i in X_dev],
+                       [selected_labels[i] for i in X_dev])
         get_conll_file("test", model_config, dev['texts'], dev['embed'], dev['labels'])
 
         #### обучаем init модель
