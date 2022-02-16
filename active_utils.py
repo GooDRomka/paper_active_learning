@@ -9,7 +9,7 @@ import os, psutil
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 import morpho_dataset
-
+from allennlp.data.dataset_readers.dataset_utils.span_utils import bio_tags_to_spans
 import numpy as np
 
 
@@ -75,10 +75,22 @@ class DataPool(object):
         perfect, changed = 0, 0
         price = 0
         ll = []
+        TP,FP,FN = 0,0,0
         for id_to_be in to_be_selected_ids:
             trans_id = np.array(self.unselected_idx)[tobe_small_selected_idxs[id_to_be]]
             ll.append(trans_id)
             price+=len(self.label_pool[trans_id])
+
+            true = bio_tags_to_spans(self.label_pool[trans_id])
+            pred = bio_tags_to_spans(predicted_labels[id_to_be])
+            for tag in true:
+                if tag in pred:
+                    TP+=1
+                else:
+                    FN+=1
+            for tag in pred:
+                if tag not in true:
+                    FP+=1
 
             if self.label_pool[trans_id] == predicted_labels[id_to_be]:
                 perfect+=1
@@ -86,7 +98,7 @@ class DataPool(object):
                 changed+=1
             self.label_pool[trans_id] = predicted_labels[id_to_be]
 
-        return changed, perfect
+        return changed, perfect, (TP,FN,FP)
 
     def replace_label(self, new_text, new_label):
         for id in range(len(self.text_pool)):
@@ -343,11 +355,11 @@ def active_learing_sampling(model, dataPool, model_config, args,train_m, train, 
 
     perfect, not_perfect, thrown_away = 0, 0, 0
     price = 0
-
+    tpfnfp = (0,0,0)
     if model_config.label_strategy == STRATEGY.LAZY: #разметка проверяется оракулом, испольщуем PREDICT, а не GOLD
         scores, predicted_labels = predict_precision_span(model, args, train_m, model_config, small_unselected_texts, small_unselected_labels, small_unselected_embedings)
         tobe_selected_idxs, tobe_selected_scores, thrown_away, perfect, not_perfect, price = ActiveStrategy.sampling_precision(tobe_selected_idxs=tobe_selected_idxs, texts=small_unselected_texts, scores=scores, threshold=model_config.threshold, step=min(model_config.step_budget, model_config.budget - sum_prices))
-        changed, not_changed = dataPool.update_labels(tobe_selected_idxs, small_unselected_ids, predicted_labels, model_config)
+        changed, not_changed, tpfnfp = dataPool.update_labels(tobe_selected_idxs, small_unselected_ids, predicted_labels, model_config)
         tobe_selected_idxs = np.array(small_unselected_ids)[tobe_selected_idxs]
 
     elif model_config.label_strategy == STRATEGY.NORMAL: #оракул размечает используем GOLD разметку
@@ -370,7 +382,7 @@ def active_learing_sampling(model, dataPool, model_config, args,train_m, train, 
     stat_in_file(model_config.loginfo,
                  ["Selection", iterations_of_learning, "len(selected_texts):", len(selected_texts), "fullcost", compute_price(selected_labels),
                   "iter_spent_budget:", price, "not_porfect:", not_perfect, "thrown_away:", thrown_away, "perfect:", perfect, "total_spent_budget:", sum_prices,
-                   "memory", model_config.p.memory_info().rss/1024/1024])
+                   "memory", model_config.p.memory_info().rss/1024/1024, "tpfnfp per iter", tpfnfp])
     return dataPool, price, perfect, not_perfect, sum_prices
 
 def init_data(dataPool,model_config):

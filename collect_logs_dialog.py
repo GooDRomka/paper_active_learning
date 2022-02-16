@@ -16,8 +16,8 @@ def bad_files(num,name):
         name = float(name[1])
     else:
         name = float(name)
-    if num=="1" and name in [1,2]:
-        return True
+    # if num=="1" and name in [1,2]:
+    #     return True
     # if num=="9" and name<=30:
     #     return True
     # if num=="10" and name<=15:
@@ -39,7 +39,7 @@ for f in files:
     os.remove(f)
 
 
-for num in ['1']:
+for num in ['1','2','3','4','5','6','7','8','9']:
     for filename in os.listdir(direct_path+num+"/"):
         if not bad_files(num,filename[:2]):
             input = direct_path+num+"/"+filename

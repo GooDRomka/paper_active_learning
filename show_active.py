@@ -77,7 +77,21 @@ def random_color():
 if __name__ == '__main__':
     directory_report = "report/active/"
     shutil.rmtree(directory_report)
-    for num in ['1']:
+    Title = {"1":"active,LC",
+     "2":"lazy,LC,0.75",
+     "3":"lazy,RAND,0.75",
+     "4":"lazy,MC,0.75",
+     "5":"lazy,LC,0.5",
+     "6":"lazy,LC,0.25",
+     "7":"self,LC,0",
+     "8":"self,RAND,0",
+     "9":"self,MC,0",
+     "10":"self paper 0,5",
+     "11":"self paper 0,995",
+     "12":"self paper 0,999",
+     "13":"self paper 0,8",
+     "14":"<>"}
+    for num in ['1','2','3','4','5','6','8','9']:
         model_config = ModelConfig()
 
         path_active = "logs/clusterDialog/log_exp_" + num + ".txt"
@@ -137,9 +151,9 @@ if __name__ == '__main__':
             plt.xlabel('spent_budget')
             plt.ylabel('bestf1dev')
             plt.legend(loc='best')
-            plt.title("active learning with scale = "+str(scale))
+            plt.title(Title[num] + " with scale = "+str(scale))
             # plt.show()
-            plt.savefig(directory_report+new_plot_num+"_active "+ str(scale)+'.png')
+            plt.savefig(directory_report+num+"_"+Title[num] +" "+ str(scale)+'.png')
 
 
         ####DRAWING on a one picture
@@ -178,18 +192,13 @@ if __name__ == '__main__':
             pylab.xlabel('spent_budget')
             pylab.ylabel('bestf1dev')
             pylab.legend(loc='best')
-            pylab.title("active learning with scale = "+str(scale))
+            pylab.title(Title[num] + " with scale = "+str(scale))
             # plt.show()
             # pylab.savefig("repor  t/active "+ str(scale)+'.png')
             pli+=1
-        Title = {"1":"lazy active learning, LC, threshold 0.5","2":"self learning,LC, threshold 0","3":"active learning, LC",
-                 "4":"lazy active learning, LC, threshold 0.25","5":"lazy active learning, LC, threshold 0.75","6":"lazy active learning,RAND, threshold 0.75",
-                 "7":"self learning, RAND, threshold 0", "8":"lazy active learning, LC, threshold 0.5, dif step", "9":"self learning paper version 0,9975",
-                 "10":"self learning paper version 0,99", "11":"self learning paper version 0,995",
-                 "12":"self learning paper version 0,95","13":"self learning paper version 0,8",
-                 "14":"self learning paper version 0,5"}
+
         pylab.suptitle(Title[num])
-        pylab.savefig(directory_report+new_plot_num+"_active_all.png")
+        pylab.savefig(directory_report+num+"_"+Title[num]+"_ALL.png")
 
 
         # print(experiments)

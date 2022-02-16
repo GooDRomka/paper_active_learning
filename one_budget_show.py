@@ -99,15 +99,19 @@ if __name__ == '__main__':
     scale = 1
     i = 2000
     # added_price_i = False
-    for metric in ['bestprecisiondev', 'bestf1dev', 'bestrecalldev']:
+    scales, nums, metrics, exname= [1,0.5,0.2,0.1],['1','2','3','4','5','6','7','8','9'],['bestprecisiondev', 'bestf1dev', 'bestrecalldev'], "allapproches"#all approaches
+    # scales,nums, exname = [1],['1','2','5','6'],['bestprecisiondev', 'bestf1dev', 'bestrecalldev'], "lazythreshold" #lazyactive different threshold
+    # scales,nums, exname = [1],['1','2','3','4,['bestprecisiondev', 'bestf1dev', 'bestrecalldev'] #lazyactive different strategies
+    # scales,nums, exname = [1],['1','7','8','9'],['bestprecisiondev', 'bestf1dev', 'bestrecalldev'] "selfstrategies" #selfkearning different strategies
+    # scales,nums, exname = [1],['10','11','12','13'],['bestprecisiondev', 'bestf1dev', 'bestrecalldev'] #selfpaper
+    for metric in metrics:
         for added_price_i in [False, True]:
-            for scale in [1]:
-                for i in [800,2000]:
+            for scale in scales:
+                for i in [800,1200,2000,4000]:
                     plt.style.use('ggplot')
-                    plt.figure(figsize=(22,16))
+                    plt.figure(figsize=(22,16),frameon=False)
                     j=0
-                    # for num in ['1','2','3','4','5','6','7','9','10','11','12','13']:
-                    for num in ['1']:
+                    for num in nums:
                         model_config = ModelConfig()
                         path_active = "logs/clusterDialog/log_exp_" + num + ".txt"
                         if not os.path.exists(directory_report):
@@ -121,8 +125,11 @@ if __name__ == '__main__':
 
                         colors = [[0, 0.4470, 0.7410],[0, 0, 1],[0.8500, 0.3250, 0.0980],[0, 0.5, 0],[1, 0, 0],[0.4940, 0.1840, 0.5560],[0, 0.75, 0.75],
                         [0.4660, 0.6740, 0.1880],[0.75, 0, 0.75],[0.3010, 0.7450, 0.9330],[0.75, 0.75, 0],[0.6350, 0.0780, 0.1840],[0.25, 0.25, 0.25],[0, 0, 0.5],[0, 0.5, 0]]
-
-                        experiments = read_file_active(path_active, scale)
+                        if num=="1":
+                            scale1 = 1
+                        else:
+                            scale1 = scale
+                        experiments = read_file_active(path_active, scale1)
                         iterations_c = experiments["active_iteration"]
                         iterations = []
                         for lis in iterations_c:
@@ -137,8 +144,7 @@ if __name__ == '__main__':
                         init_budget, budget, step_budget = pd.unique(iterations['init_budget']),pd.unique(iterations['budget']),pd.unique(iterations['step_budget'])
 
                         if j==0 and not added_price_i:
-                            filt = max(budget)*scale+max(init_budget)+1000
-
+                            filt = max(budget)*scale1+max(init_budget)+1000
                             experiments_simple_filt = experiments_simple[experiments_simple['budget']<=filt]
                             plt.plot(experiments_simple_filt['budget'], experiments_simple_filt[('f1','mean')],label="simple", marker="o", color="black")
                             plt.fill_between(experiments_simple_filt['budget'],experiments_simple_filt[('f1','mean')]+experiments_simple_filt[('f1','std')],experiments_simple_filt[('f1','mean')]- experiments_simple_filt[('f1','std')],alpha=.2)
@@ -164,8 +170,7 @@ if __name__ == '__main__':
                     plt.ylabel(metric)
                     plt.legend(loc='best')
                     plt.title("learning with budget = "+str(i))
-
-                    plt.savefig(directory_report+str(added_price_i)+"_"+metric+"_active "+ str(i)+"_"+str(scale) +'.png')
+                    plt.savefig(directory_report+str(added_price_i)+"_"+metric+"_"+exname+"_"+str(i)+"_"+str(scale) +'.png')
 
 
 
