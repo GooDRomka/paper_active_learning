@@ -244,10 +244,10 @@ elif exp_type == 9:
 elif exp_type == 10:
     # self learning paper 05
     params = [
-        [STRATEGY.SELF, STRATEGY.LAZY, 800, 8000,  0, 0.5],
-          [STRATEGY.SELF, STRATEGY.LAZY, 2000, 8000,  0, 0.5],
-          [STRATEGY.SELF, STRATEGY.LAZY, 1200, 8000,  0, 0.5],
-          [STRATEGY.SELF, STRATEGY.LAZY, 4000, 8000,  0, 0.5],
+        [STRATEGY.SELF, STRATEGY.LAZY, 800, 8000,  0, 0.975],
+          [STRATEGY.SELF, STRATEGY.LAZY, 2000, 8000,  0, 0.975],
+          [STRATEGY.SELF, STRATEGY.LAZY, 1200, 8000,  0, 0.975],
+          [STRATEGY.SELF, STRATEGY.LAZY, 4000, 8000,  0, 0.975],
           ]
     for i in range(5):
         for param in params:
