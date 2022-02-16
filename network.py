@@ -80,7 +80,7 @@ class Network:
         self.session = tf.Session(graph = graph, config=tf.ConfigProto(inter_op_parallelism_threads=threads,
                                                                        intra_op_parallelism_threads=threads))
 
-    def construct(self, args, num_forms, num_form_chars, num_lemmas, num_lemma_chars, num_pos,
+    def construct(self, args, model_config, num_forms, num_form_chars, num_lemmas, num_lemma_chars, num_pos,
                   pretrained_form_we_dim, pretrained_lemma_we_dim, pretrained_fasttext_dim,
                   num_tags, tag_bos, tag_eow, pretrained_bert_dim, pretrained_flair_dim, pretrained_elmo_dim,
                   predict_only):
@@ -219,10 +219,10 @@ class Network:
                 self.predictions, self.viterbi_score  = tf.contrib.crf.crf_decode(
                     output_layer, transition_params, self.sentence_lens)
                 self.viterbi_score = self.viterbi_score/tf.cast( self.sentence_lens, tf.float32)
-
-                # seq_score, _ = tf.contrib.crf.crf_log_likelihood(
-                #     output_layer, self.predictions, self.sentence_lens, transition_params)
-                # self.viterbi_score = seq_score/tf.cast( self.sentence_lens, tf.float32)
+                if model_config.select_strategy==STRATEGY.SELF:
+                    seq_score, _ = tf.contrib.crf.crf_log_likelihood(
+                        output_layer, self.predictions, self.sentence_lens, transition_params)
+                    self.viterbi_score = seq_score/tf.cast( self.sentence_lens, tf.float32)
 
                 self.predictions_training = self.predictions
 
@@ -564,6 +564,7 @@ def train_model(model_config):
     # Construct the network
     network = Network(threads=args.threads)
     network.construct(args,
+                      model_config = model_config,
                       num_forms=len(train.factors[train.FORMS].words),
                       num_form_chars=len(train.factors[train.FORMS].alphabet),
                       num_lemmas=len(train.factors[train.LEMMAS].words),
