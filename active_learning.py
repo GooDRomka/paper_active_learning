@@ -47,7 +47,7 @@ def start_active_learning(train, dev, test, model_config):
     end_marker, iterations_of_learning, sum_prices, sum_perfect, sum_changed, sum_not_changed, sum_not_perfect, perfect, not_perfect, changed, not_changed, thrown_away, price = False, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
     while (selected_texts is None) or sum_prices < model_config.budget - 10 and not end_marker:
         iterations_of_learning += 1
-        if model_config.label_strategy==STRATEGY.SELF:
+        if model_config.select_strategy==STRATEGY.SELF:
             model_config.step_budget=20000000
             model_config.budget=20000000
         ### выбрать несколько примеров с помощью активки и разметить их
