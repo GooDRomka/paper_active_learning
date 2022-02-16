@@ -51,7 +51,7 @@ class DataPool(object):
     def get_unselected_small(self, num):
         num = round(num)
         if num >= len(self.unselected_idx):
-            return self.unselected_idx, self.unselected_texts, self.unselected_labels
+            return list(range(len(self.unselected_idx))), self.unselected_texts, self.unselected_labels
         idxs = list(range(len(self.unselected_idx)))
         small_unselected_idx = sorted(random.sample(idxs, num))
         small_unselected_labels = self.unselected_labels[small_unselected_idx]
