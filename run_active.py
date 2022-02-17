@@ -153,7 +153,7 @@ elif exp_type== 5:
 elif exp_type == 6:
     # lazy active(LC) learning
     params = [[STRATEGY.LC, STRATEGY.LAZY, 800, 8000, 0.25],
-          [STRATEGY.LC, STRATEGY.LAZY, 1000, 8000,  0.25],
+          [STRATEGY.LC, STRATEGY.LAZY, 2000, 8000,  0.25],
           [STRATEGY.LC, STRATEGY.LAZY, 4000, 8000,  0.25],
           [STRATEGY.LC, STRATEGY.LAZY, 1200, 8000,  0.25],
 

@@ -5,7 +5,6 @@ import shutil
 import csv
 import json
 import random
-import pylab
 from configs import ModelConfig, ActiveConfig
 import matplotlib.pyplot as plt
 from show_simple import read_file_simple
@@ -36,7 +35,7 @@ def read_file_active(path, scale, num=1):
                 fullcost = init_budget
 
             if line[0] == "TrainInitFinished":
-                stat['active_iteration'].append({"bestf1dev": float(line[12]), "bestprecisiondev": float(line[8]), "bestrecalldev": float(line[10]),"budget": budget, "init_budget": init_budget, "step_budget":step_budget ,"spent_budget":spent_budget})
+                stat['active_iteration'].append({"f1_score": float(line[12]), "precision": float(line[8]), "recall": float(line[10]),"budget": budget, "init_budget": init_budget, "step_budget":step_budget ,"spent_budget":spent_budget})
 
             if line[0] == "Selection":
                 if num>=9:
@@ -50,7 +49,7 @@ def read_file_active(path, scale, num=1):
 
 
             if line[0] == "IterFinished":
-                stat['active_iteration'].append({"bestf1dev": float(line[21]), "bestprecisiondev": float(line[17]), "bestrecalldev": float(line[19]),"added_price": added_price,"budget": budget, "init_budget": init_budget, "step_budget":step_budget ,"spent_budget":spent_budget})
+                stat['active_iteration'].append({"f1_score": float(line[21]), "precision": float(line[17]), "recall": float(line[19]),"added_price": added_price,"budget": budget, "init_budget": init_budget, "step_budget":step_budget ,"spent_budget":spent_budget})
 
             if line[0] == "result":
                 stat['active_iteration'] = stat['active_iteration'][:-2]
@@ -99,13 +98,13 @@ if __name__ == '__main__':
     scale = 1
     i = 2000
     # added_price_i = False
-    scales, nums, metrics, exname= [1,0.5,0.2,0.1],['1','2','3','4','5','6','7','8','9'],['bestprecisiondev', 'bestf1dev', 'bestrecalldev'], "allapproches"#all approaches
-    # scales,nums, exname = [1],['1','2','5','6'],['bestprecisiondev', 'bestf1dev', 'bestrecalldev'], "lazythreshold" #lazyactive different threshold
-    # scales,nums, exname = [1],['1','2','3','4,['bestprecisiondev', 'bestf1dev', 'bestrecalldev'] #lazyactive different strategies
-    # scales,nums, exname = [1],['1','7','8','9'],['bestprecisiondev', 'bestf1dev', 'bestrecalldev'] "selfstrategies" #selfkearning different strategies
-    # scales,nums, exname = [1],['10','11','12','13'],['bestprecisiondev', 'bestf1dev', 'bestrecalldev'] #selfpaper
+    # scales, nums, metrics, exname= [1,0.5,0.2,0.1],['1','2','3','4','5','6','7','8','9'],['precision', 'f1_score', 'recall'], "allapproches"#all approaches
+    scales,nums, metrics, exname = [1],['1','2','5','6'],['precision', 'f1_score', 'recall'], "lazythreshold" #lazyactive different threshold
+    # scales, nums, metrics, exname = [1],['1','2','3','4'],['precision', 'f1_score', 'recall'],"lazydifstrat" #lazyactive different strategies
+    # scales,nums,  metrics, exname = [1],['1','7','8','9'],['precision', 'f1_score', 'recall'], "selfstrategies" #selfkearning different strategies
+    # scales,nums, metrics, exname = [1],['10','11','12','13'],['precision', 'f1_score', 'recall'] #selfpaper
     for metric in metrics:
-        for added_price_i in [False, True]:
+        for added_price_i in [False]:
             for scale in scales:
                 for i in [800,1200,2000,4000]:
                     plt.style.use('ggplot')
@@ -137,7 +136,7 @@ if __name__ == '__main__':
                                 iterations.append(it)
                         iterations = pd.DataFrame(iterations)
 
-                        iterations = iterations.groupby(['budget', 'init_budget','step_budget', 'spent_budget'],as_index=False).agg({'added_price': ['mean','std'],'bestf1dev': ['mean','std'], 'bestprecisiondev': ['mean','std'], 'bestrecalldev': ['mean','std']})
+                        iterations = iterations.groupby(['budget', 'init_budget','step_budget', 'spent_budget'],as_index=False).agg({'added_price': ['mean','std'],'f1_score': ['mean','std'], 'precision': ['mean','std'], 'recall': ['mean','std']})
 
                         experiments = experiments.groupby(['budget','init_budget','step_budget']).agg(
                             {'devf1': ['mean', 'std'], 'devprecision': ['mean', 'std'], 'devrecall': ['mean', 'std']})
